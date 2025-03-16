@@ -10,7 +10,7 @@ const poppins = Poppins({
 
 
 export const metadata: Metadata = {
-  title: "Entre.go | Loja | Cadastre sua loja hoje",
+  title: "Entregô | Loja | Cadastre sua loja hoje",
   description: "O aplicativo de delivery para sua loja.",
 };
 
