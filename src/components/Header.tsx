@@ -30,7 +30,9 @@ export default function Header() {
                 Fazer Login
               </Button>
             </Link>
-            <Button className="text-sm py-5 lg:py-7">Cadastrar</Button>
+            <Link href="/cadastro">
+              <Button className="text-sm py-5 lg:py-7 hover:cursor-pointer">Cadastrar</Button>
+            </Link>
             <AlignRight className="text-primary flex lg:hidden" size={40} />
           </div>
         </div>
