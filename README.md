@@ -1,4 +1,4 @@
-## Página em Construção
+## Site em Construção
 
 *Nenhuma página está pronta para uso, somente visualização.*
 
