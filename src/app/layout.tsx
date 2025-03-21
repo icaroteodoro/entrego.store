@@ -8,7 +8,6 @@ const poppins = Poppins({
   subsets: ["latin"],
 });
 
-
 export const metadata: Metadata = {
   title: "Entregô | Loja | Cadastre sua loja hoje",
   description: "O aplicativo de delivery para sua loja.",
@@ -21,11 +20,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body
-        className={`${poppins.variable} antialiased`}
-      >
-        {children}
-      </body>
+      <body className={`${poppins.variable} antialiased`}>{children}</body>
     </html>
   );
 }

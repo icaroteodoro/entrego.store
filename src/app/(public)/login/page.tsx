@@ -1,6 +1,6 @@
 "use client";
 
-import "../../assets/css/login.css";
+import "@/assets/css/login.css";
 import { Input } from "@/components/ui/input";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
@@ -9,7 +9,7 @@ import { Eye, EyeClosed } from "lucide-react";
 import { useState } from "react";
 import Image from "next/image";
 
-import Logo from '../../assets/svg/logo.svg'
+import Logo from '@/assets/svg/logo.svg'
 
 export default function Login() {
     const [email, setEmail] = useState("");
