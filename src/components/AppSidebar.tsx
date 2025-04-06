@@ -14,12 +14,18 @@ import {
 import Link from "next/link";
 import { Home, MapPin, NotebookText, NotepadText, Settings, Store } from "lucide-react";
 import  {HeaderSidebar}  from "./HeaderSidebar";
+import { useEffect, useState } from "react";
 
 const items = [
   {
     title: "Home",
     url: "/home",
     icon: Home,
+  },
+  {
+    title: "Pedidos",
+    url: "/pedidos",
+    icon: NotepadText,
   },
   {
     title: "Loja",
@@ -31,11 +37,7 @@ const items = [
     url: "/endereco",
     icon: MapPin,
   },
-  {
-    title: "Pedidos",
-    url: "/pedidos",
-    icon: NotepadText,
-  },
+
   {
     title: "Cardápio",
     url: "/cardapio",
@@ -59,12 +61,16 @@ export default function AppSidebar() {
     setOpenMobile,
     isMobile,
     toggleSidebar,
+    setPageTitle
   } = useSidebar();
+
+  
+
   return (
     <Sidebar collapsible="icon">
       <SidebarHeader className="flex flex-row justify-strart items-center">
         <SidebarContent>
-          <HeaderSidebar nameStore="Passaporte do Jack"/>
+          <HeaderSidebar/>
         </SidebarContent>
       </SidebarHeader>
       <SidebarContent>
