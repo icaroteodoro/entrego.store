@@ -327,10 +327,11 @@ export default function Home() {
                       className={`${
                         orderView?.status === "MADE" ? "w-[48%]" : "w-full"
                       } bg-green-600 hover:bg-green-700 hover:cursor-pointer`}
+                      onClick={orderView.status === 'MADE' ? () => updateStatusOrder("ACCEPTED", orderView.id) : () => updateStatusOrder("SENT", orderView.id)}
                     >
                       {orderView?.status === "MADE"
                         ? "Aceitar pedido"
-                        : orderView?.status === "CANCELED"
+                        : orderView?.status === "ACCEPTED"
                         ? "Realizar entrega"
                         : "Finalizar pedido"}
                     </Button>

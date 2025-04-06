@@ -32,7 +32,7 @@ export default function CardOrder(order: iCardOrder) {
         <h4 className="text-base">Pedido feito às {order.deliveryTime}</h4>
       </div>
       <div className="flex justify-between">
-        {order.status === "FINISHED" || order.status === 'SENT' ? (
+        {order.status === "FINISHED" || order.status === 'SENT' || order.status === 'CANCELED' ? (
           <></>
         ) : (
           <Button
@@ -49,7 +49,7 @@ export default function CardOrder(order: iCardOrder) {
           </Button>
         )}
         {order.status === "MADE" ? (
-          <Button onClick={() => order.cancelOrder} className="w-[48%] bg-red-600 hover:bg-red-700 hover:cursor-pointer">
+          <Button onClick={order.cancelOrder} className="w-[48%] bg-red-600 hover:bg-red-700 hover:cursor-pointer">
             Rejeitar pedido
           </Button>
         ) : (
