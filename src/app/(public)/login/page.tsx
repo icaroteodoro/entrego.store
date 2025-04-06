@@ -9,17 +9,16 @@ import { Eye, EyeClosed } from "lucide-react";
 import { useState } from "react";
 import Image from "next/image";
 
-import Logo from '@/assets/svg/logo.svg'
+import Logo from "@/assets/svg/logo.svg";
+import { loginStore } from "@/services/storeService";
 
 export default function Login() {
-    const [email, setEmail] = useState("");
-    const [password, setPassword] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
 
-
-
-    const handleLogin = () =>  {
-        alert("Seu email: " + email + "\n" + "Sua senha: " + password);
-    }
+  const handleLogin = async () => {
+    await loginStore(email, password);
+  };
 
   const [visiblePass, setVisiblePass] = useState(false);
   const changeVisiblePass = () => {
@@ -30,19 +29,27 @@ export default function Login() {
     <section className="login w-full h-screen flex items-center justify-center">
       <div className="bg-white w-80 rounded-md p-5">
         <div className="flex justify-center mb-5">
-          <Image className="w-full" alt="Logo" src={Logo}/>
+          <Image className="w-full" alt="Logo" src={Logo} />
         </div>
 
         <form className="mb-5" action="">
           <div className="flex flex-col mb-3">
-            <label className="text-sm" htmlFor="email">E-mail</label>
-            <Input onChange={e => setEmail(e.target.value)} name="email" id="email" />
+            <label className="text-sm" htmlFor="email">
+              E-mail
+            </label>
+            <Input
+              onChange={(e) => setEmail(e.target.value)}
+              name="email"
+              id="email"
+            />
           </div>
           <div className="flex flex-col">
-            <label className="text-sm" htmlFor="password">Senha</label>
+            <label className="text-sm" htmlFor="password">
+              Senha
+            </label>
             <div className="relative">
               <Input
-                onChange={e => setPassword(e.target.value)}
+                onChange={(e) => setPassword(e.target.value)}
                 name="password"
                 id="password"
                 type={visiblePass ? "text" : "password"}
@@ -59,7 +66,13 @@ export default function Login() {
           <Link className="text-xs underline" href="/">
             Esqueceu sua senha?
           </Link>
-          <Button type="button" onClick={() => handleLogin()} className="w-full mt-5 hover:cursor-pointer">Login via e-mail</Button>
+          <Button
+            type="button"
+            onClick={() => handleLogin()}
+            className="w-full mt-5 hover:cursor-pointer"
+          >
+            Login via e-mail
+          </Button>
         </form>
 
         <div className="flex items-center justify-between mb-5">
