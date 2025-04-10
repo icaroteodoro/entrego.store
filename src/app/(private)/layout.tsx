@@ -1,7 +1,7 @@
 import AppSidebar from "@/components/app-sidebar";
 import InternHeader from "@/components/intern-header";
 import { SidebarProvider } from "@/components/ui/sidebar";
-import { StoreProvider } from "@/context/StoreContext";
+import { StoreProvider } from "@/context/store-context";
 
 
 export default function InternLayout(

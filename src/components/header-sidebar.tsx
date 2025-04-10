@@ -31,7 +31,7 @@ import {
 import Image from "next/image"
 import { DropdownMenuGroup } from "@radix-ui/react-dropdown-menu"
 import { logout } from "@/services/store-service"
-import { useStore } from "@/context/StoreContext"
+import { useStore } from "@/context/store-context"
 import { useEffect, useState } from "react"
 
 const statusMap = {
