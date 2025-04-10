@@ -1,7 +1,7 @@
 import React from "react";
 import { Button } from "./ui/button";
-import AlertDot from "./AlertDot";
-import { useOrders } from "@/hooks/useOrder";
+import AlertDot from "./alert-dot";
+import { useOrders } from "@/hooks/use-order";
 
 export interface iCardOrder extends React.HTMLAttributes<HTMLDivElement> {
   numberOrder: string;

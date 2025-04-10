@@ -1,5 +1,5 @@
-import AppSidebar from "@/components/AppSidebar";
-import InternHeader from "@/components/InternHeader";
+import AppSidebar from "@/components/app-sidebar";
+import InternHeader from "@/components/intern-header";
 import { SidebarProvider } from "@/components/ui/sidebar";
 import { StoreProvider } from "@/context/StoreContext";
 

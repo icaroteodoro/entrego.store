@@ -1,7 +1,7 @@
 "use client";
-import { iItems, iOrder, useOrders } from "@/hooks/useOrder";
-import CardOrder from "@/components/CardOrder";
-import { ChartOrders } from "@/components/ChartOrders";
+import { iItems, useOrders } from "@/hooks/use-order";
+import CardOrder from "@/components/card-order";
+import { ChartOrders } from "@/components/chart-orders";
 import {
   Accordion,
   AccordionContent,

@@ -10,7 +10,7 @@ import { useState } from "react";
 import Image from "next/image";
 
 import Logo from "@/assets/svg/logo.svg";
-import { loginStore } from "@/services/storeService";
+import { loginStore } from "@/services/store-service";
 
 export default function Login() {
   const [email, setEmail] = useState("");

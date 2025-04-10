@@ -30,7 +30,7 @@ import {
 } from "@/components/ui/alert-dialog"
 import Image from "next/image"
 import { DropdownMenuGroup } from "@radix-ui/react-dropdown-menu"
-import { logout } from "@/services/storeService"
+import { logout } from "@/services/store-service"
 import { useStore } from "@/context/StoreContext"
 import { useEffect, useState } from "react"
 

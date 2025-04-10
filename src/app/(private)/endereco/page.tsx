@@ -2,7 +2,7 @@
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { iAddress, getStoreAddress, updateStoreAddress } from "@/services/storeService";
+import { iAddress, getStoreAddress, updateStoreAddress } from "@/services/store-service";
 import { useEffect, useState } from "react";
 import { PencilIcon, XIcon, CheckIcon, LockIcon, AlertCircle } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";

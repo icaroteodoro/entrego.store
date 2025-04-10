@@ -13,7 +13,7 @@ import {
 } from "./ui/sidebar";
 import Link from "next/link";
 import { Home, MapPin, NotebookText, NotepadText, Settings, Store } from "lucide-react";
-import  {HeaderSidebar}  from "./HeaderSidebar";
+import  {HeaderSidebar}  from "./header-sidebar";
 import { useEffect, useState } from "react";
 
 const items = [

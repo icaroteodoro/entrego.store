@@ -1,5 +1,5 @@
 'use client'
-import { changeStoreStatus, getStore, iStore } from '@/services/storeService';
+import { changeStoreStatus, getStore, iStore } from '@/services/store-service';
 import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
 
 export type StoreStatus = 'OPEN' | 'CLOSED' | "CLOSING";

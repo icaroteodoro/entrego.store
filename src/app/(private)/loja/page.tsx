@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/componen
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { getStore, updateStore, iStore } from "@/services/storeService";
+import { getStore, updateStore, iStore } from "@/services/store-service";
 import { useEffect, useState } from "react";
 import { PencilIcon, XIcon, CheckIcon, LockIcon, AlertCircle } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";

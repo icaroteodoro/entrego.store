@@ -1,7 +1,7 @@
 import api from "@/lib/axios";
 
 import { destroyCookie } from "nookies";
-import { getEmailByToken, saveRefreshToken, saveToken } from "./tokenService";
+import { getEmailByToken, saveRefreshToken, saveToken } from "./token-service";
 import { redirect } from 'next/navigation'
 import { StoreStatus } from "@/context/StoreContext";
 

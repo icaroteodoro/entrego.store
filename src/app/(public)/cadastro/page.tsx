@@ -10,7 +10,7 @@ import { useState } from "react";
 import Image from "next/image";
 
 import Logo from "@/assets/svg/logo.svg";
-import { createStore } from "@/services/storeService";
+import { createStore } from "@/services/store-service";
 
 
 export default function Cadastro() {
