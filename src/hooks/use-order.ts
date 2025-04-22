@@ -2,6 +2,7 @@ import { parseCookies } from "nookies";
 import api from "@/lib/axios";
 import jwt from "jsonwebtoken";
 import { useEffect, useState } from "react";
+import { getToken } from "@/services/token-service";
 
 export interface iItems {
   name: string;
@@ -13,6 +14,7 @@ export interface iOrder {
   id: string,
   numberOrder: string;
   clientName: string;
+  total: number;
   deliveryTime: string;
   status: "MADE" | "ACCEPTED" | "CANCELED" | "SENT" | "FINISHED";
   items: iItems[];
@@ -43,23 +45,24 @@ export function useOrders(today: boolean) {
 
   async function getAllOrders() {
     setIsLoading(true)
-    const res = await getOrders();
-    if(!res){
-      console.log('Nenhum pedido para hoje') 
+    try {
+      const res = await getOrders();
+      if (!res) {
+        setIsLoading(false)
+        return false;
+      }
+      setOrders(res);
+      setOrderView(prev => prev || (res.length > 0 ? res[0] : undefined));
+      setIsLoading(false)
+      return res;
+    } catch (error) {
+      console.error('Erro ao obter pedidos:', error);
+      setIsLoading(false)
       return false;
-    } 
-    setOrders(res);
-    setOrderView(res[0]);
-    setIsLoading(false)
+    }
   }
 
-  // Função para obter o token
-  function getToken(ctx = null) {
-    const cookies = parseCookies(ctx);
-    return cookies.token;
-  }
 
-  // Função para obter os pedidos
   async function getOrders() {
     const token = getToken();
 
@@ -70,10 +73,10 @@ export function useOrders(today: boolean) {
     const email = jwt.decode(token)?.sub;
 
     try {
-      if(today){
+      if (today) {
         const response = await api.get(`/order/store/today/${email}`);
         return response.data;
-      }else{
+      } else {
         const response = await api.get(`/order/store/${email}`);
         return response.data;
       }
@@ -82,14 +85,57 @@ export function useOrders(today: boolean) {
     }
   }
 
-  async function updateStatusOrder(status: "MADE" | "ACCEPTED" | "CANCELED" | "SENT" | "FINISHED", orderId:string){
+  async function refreshOrders() {
+    try {
+      const token = getToken();
+      if (!token) {
+        console.warn('Token não disponível para atualizar pedidos');
+        return false;
+      }
+
+      const email = jwt.decode(token)?.sub;
+      if (!email) {
+        console.warn('Email não disponível no token');
+        return false;
+      }
+      setIsLoading(true);
+
+      try {
+
+        let apiResponse: { data: iOrder[] } | undefined;
+        if (today) {
+          apiResponse = await api.get<iOrder[]>(`/order/store/today/${email}`);
+        } else {
+          apiResponse = await api.get<iOrder[]>(`/order/store/${email}`);
+        }
+
+        if (apiResponse && apiResponse.data) {
+          setOrders(apiResponse.data);
+          setOrderView(prev => prev || (apiResponse.data.length > 0 ? apiResponse.data[0] : undefined));
+          setIsLoading(false);
+          return apiResponse.data;
+        }
+      } catch (error) {
+        console.error('Erro ao atualizar pedidos:', error);
+      }
+
+      setIsLoading(false);
+      return false;
+    } catch (error) {
+      console.error('Erro na atualização de pedidos:', error);
+      setIsLoading(false);
+      return false;
+    }
+  }
+
+  async function updateStatusOrder(status: "MADE" | "ACCEPTED" | "CANCELED" | "SENT" | "FINISHED", orderId: string) {
     setIsUpdating(true)
-    try{
+    try {
       const response = await api.put('/order/update', {
         orderId,
         status
       });
-      
+
       // Atualiza o estado local
       setOrders(prevOrders => {
         return prevOrders.map(order => {
@@ -110,7 +156,7 @@ export function useOrders(today: boolean) {
 
       setIsUpdating(false)
       return response.data
-    }catch (error) {
+    } catch (error) {
       setIsUpdating(false)
       return error;
     }
@@ -126,6 +172,7 @@ export function useOrders(today: boolean) {
     deliveredOrders,
     canceledOrders,
     setOrderView,
+    refreshOrders,
     updateStatusOrder
   };
 }
