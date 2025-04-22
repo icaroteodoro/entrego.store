@@ -30,17 +30,14 @@ export default function Cadastro() {
     setVisibleConfirmPass(!visibleConfirmPass);
   };
   
-  // Função para formatar o documento (CPF ou CNPJ)
+  
   const formatDocument = (value: string) => {
-    // Remove todos os caracteres não numéricos
     const digits = value.replace(/\D/g, '');
     
-    // Limita o número de caracteres para CPF (11) ou CNPJ (14)
     if (digits.length > 14) {
       return document; // Mantém o valor anterior se exceder o limite
     }
     
-    // Formata como CPF: 000.000.000-00
     if (digits.length <= 11) {
       return digits
         .replace(/(\d{3})(\d)/, '$1.$2')
@@ -48,7 +45,6 @@ export default function Cadastro() {
         .replace(/(\d{3})(\d{1,2})$/, '$1-$2')
         .replace(/(-\d{2})\d+?$/, '$1');
     } 
-    // Formata como CNPJ: 00.000.000/0000-00
     else {
       return digits
         .replace(/(\d{2})(\d)/, '$1.$2')
@@ -59,14 +55,12 @@ export default function Cadastro() {
     }
   };
   
-  // Função para manipular a alteração no campo de documento
   const handleDocumentChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
     const formattedValue = formatDocument(value);
     setDocument(formattedValue);
   };
   
-  // Função para remover formatação antes de enviar
   const getCleanDocument = () => {
     return document.replace(/\D/g, '');
   };
@@ -76,7 +70,7 @@ export default function Cadastro() {
       const cleanDocument = getCleanDocument();
       const response = await createStore({
         name, 
-        document: cleanDocument, // Envia apenas os dígitos
+        document: cleanDocument,
         email, 
         password
       });
@@ -114,11 +108,6 @@ export default function Cadastro() {
               name="document"
               id="document"
             />
-            {/* <span className="text-xs text-gray-500 mt-1">
-              {document.replace(/\D/g, '').length <= 11 
-                ? "Formato: 000.000.000-00 (CPF)" 
-                : "Formato: 00.000.000/0000-00 (CNPJ)"}
-            </span> */}
           </div>
           <div className="flex flex-col mb-3">
             <label className="text-sm" htmlFor="email">
