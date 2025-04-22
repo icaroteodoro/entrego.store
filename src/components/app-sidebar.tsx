@@ -15,6 +15,7 @@ import Link from "next/link";
 import { Home, MapPin, NotebookText, NotepadText, Settings, Store } from "lucide-react";
 import  {HeaderSidebar}  from "./header-sidebar";
 import { useEffect, useState } from "react";
+import { verifyImagesStore, verifyAddressStore } from "@/services/store-service";
 
 const items = [
   {
@@ -43,11 +44,11 @@ const items = [
     url: "/cardapio",
     icon: NotebookText,
   },
-  {
-    title: "Configurações",
-    url: "/configuracoes",
-    icon: Settings,
-  },
+  // {
+  //   title: "Configurações",
+  //   url: "/configuracoes",
+  //   icon: Settings,
+  // },
 ];
 
 
@@ -64,10 +65,30 @@ export default function AppSidebar() {
     setPageTitle
   } = useSidebar();
 
+  const [containImages, setContainImages] = useState(true);
+  const [containAddress, setContainAddres] = useState(true);
+
+
+
+  const verifyImages =  async () =>{
+    const res = await verifyImagesStore();
+    setContainImages(res);
+  }
+  const verifyAddress =  async () =>{
+    const res = await verifyAddressStore();
+    setContainAddres(res);
+  }
+
+  useEffect(() => {
+    verifyImages();
+    verifyAddress();
+  },[]);
+
+
   
 
   return (
-    <Sidebar collapsible="icon">
+    <Sidebar onClick={() => console.log(containAddress)} collapsible="icon">
       <SidebarHeader className="flex flex-row justify-strart items-center">
         <SidebarContent>
           <HeaderSidebar/>
@@ -78,13 +99,19 @@ export default function AppSidebar() {
           <SidebarGroupContent>
             <SidebarMenu>
               {items.map((item) => (
-                <SidebarMenuItem key={item.title}>
-                  <SidebarMenuButton asChild>
+                <SidebarMenuItem className="flex justify-between items-center" key={item.title}>
+                  <SidebarMenuButton  asChild>
                     <Link href={item.url}>
                       <item.icon />
                       <span>{item.title}</span>
                     </Link>
                   </SidebarMenuButton>
+                  {
+                    item.title === 'Loja' ? containImages ? <></> : <div className="w-1.5 h-1.5 bg-rose-400 rounded-full"></div> : <></>
+                  }
+                  {
+                    item.title === 'Endereço' ? containAddress ? <></> : <div className="w-1.5 h-1.5 bg-rose-400 rounded-full"></div> : <></>
+                  }
                 </SidebarMenuItem>
               ))}
             </SidebarMenu>
