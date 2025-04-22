@@ -2,57 +2,54 @@ import api from "@/lib/axios";
 
 import { destroyCookie } from "nookies";
 import { getEmailByToken, saveRefreshToken, saveToken } from "./token-service";
-import { redirect } from 'next/navigation'
+import { redirect } from "next/navigation";
 import { StoreStatus } from "@/context/store-context";
-
-
-
 
 interface iCreateStore {
   name: string;
   document: string;
-  email:string;
+  email: string;
   password: string;
 }
 
 export interface iStore {
-  id:string,
-  name: string,
-  document: string,
-  email: string,
-  description: string,
-  category: string,
-  statusLive: StoreStatus
+  id: string;
+  name: string;
+  document: string;
+  email: string;
+  description: string;
+  category: string;
+  statusLive: StoreStatus;
+  urlProfileImage: string;
+  urlCoverImage: string;
 }
 
 export interface iAddress {
-  id:string,
-  cep: string,
-  number:string,
-  street:string,
-  complement: string,
-  neighborhood:string,
-  city: string,
-  country: string
+  id: string;
+  cep: string;
+  number: string;
+  street: string;
+  complement: string;
+  neighborhood: string;
+  city: string;
+  country: string;
 }
 
 export async function createStore(data: iCreateStore) {
   try {
-      const response = await api.post('/auth/store/register', {
-          name: data.name,
-          document: data.document,
-          email: data.email,
-          password: data.password,
-          address: {} // Garante que address não será undefined
-      });
+    const response = await api.post("/auth/store/register", {
+      name: data.name,
+      document: data.document,
+      email: data.email,
+      password: data.password,
+      address: {}, // Garante que address não será undefined
+    });
 
-      console.log("Loja cadastrada com sucesso:", response.data);
-      saveToken(response.data.token);
-      saveRefreshToken('refreshToken', response.data.refresh_token);
-      redirect('/home')
+    saveToken(response.data.token);
+    saveRefreshToken("refreshToken", response.data.refresh_token);
+    window.location.href= "/home";
   } catch (error: any) {
-      console.error("Erro ao cadastrar a loja:", error.response?.data || error.message);
-      throw error; // Propaga o erro para que a chamada possa tratá-lo
+    throw error;
   }
 }
 
@@ -66,16 +63,12 @@ export async function loginStore(email: string, password: string) {
     saveToken(response.data.token);
     saveRefreshToken(response.data.refreshToken);
   } catch (error: any) {
-    console.error(
-      "Erro no login:",
-      error.response?.data || error.message
-    );
     throw error;
   }
   window.location.href = "/home";
 }
 
-export async function getStore():Promise<iStore> {
+export async function getStore(): Promise<iStore> {
   const email = getEmailByToken();
 
   const store = await api.get(`/store/${email}`);
@@ -83,39 +76,34 @@ export async function getStore():Promise<iStore> {
   return store.data;
 }
 
-
-
-export async function changeStoreStatus (newStatus: any) {
+export async function changeStoreStatus(newStatus: any) {
   const email = getEmailByToken();
 
   try {
-    await api.put('/store/update-status', {
+    await api.put("/store/update-status", {
       email,
-      status: newStatus
-    })
+      status: newStatus,
+    });
     return true;
-  }catch(err) {
+  } catch (err) {
     return false;
   }
-
 }
 
-
-export async function updateStore(editValues:iStore) {
+export async function updateStore(editValues: iStore) {
   const email = getEmailByToken();
 
   try {
     await api.put(`/store/update/${email}`, {
       name: editValues.name,
-      description:editValues.description,
-      category: editValues.category
-    })
+      description: editValues.description,
+      category: editValues.category,
+    });
     return true;
-  }catch(err) {
+  } catch (err) {
     return false;
   }
 }
-
 
 export async function getStoreAddress() {
   const email = getEmailByToken();
@@ -123,10 +111,9 @@ export async function getStoreAddress() {
   const address = await api.get(`/store/address/${email}`);
 
   return address.data;
-
 }
 
-export async function updateStoreAddress(editValues:iAddress){
+export async function updateStoreAddress(editValues: iAddress) {
   const email = getEmailByToken();
 
   try {
@@ -137,19 +124,85 @@ export async function updateStoreAddress(editValues:iAddress){
       neighborhood: editValues.neighborhood,
       city: editValues.city,
       country: editValues.country,
-      complement: editValues.complement
-    })
+      complement: editValues.complement,
+    });
     return true;
-  }catch(err) {
+  } catch (err) {
     return false;
   }
 }
 
+export async function updateStoreProfileImage(file: File) {
+  try{
+    const storeEmail = getEmailByToken();
+    const formData = new FormData();
+  
+    formData.append("file", file);
+  
+    const newUrlProfileImage = await api.put(
+      `/store/update-profile/${storeEmail}`,
+      formData,
+      {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      }
+    );
 
-export async function logout(){
-  if(await changeStoreStatus("CLOSED")){
-    destroyCookie(null, 'token')
-    destroyCookie(null, 'refreshToken')
-    window.location.href = '/';
+    return newUrlProfileImage;
+  }catch(error) {
+    throw error;
+  }
+}
+export async function updateStoreCoverImage(file: File) {
+  try{
+    const storeEmail = getEmailByToken();
+    const formData = new FormData();
+  
+    formData.append("file", file);
+  
+    const newUrlCoverImage = await api.put(
+      `/store/update-cover/${storeEmail}`,
+      formData,
+      {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      }
+    );
+
+    return newUrlCoverImage;
+  }catch(error) {
+    throw error;
+  }
+}
+
+
+
+export async function verifyAddressStore() {
+  const address:iAddress = await getStoreAddress();
+
+  if(!address || !address.city || !address.country || !address.street || !address.cep || !address.neighborhood) {
+    return false
+  }
+
+  return true;
+}
+
+export async function verifyImagesStore() {
+  const store = await getStore();
+
+  if(!store.urlCoverImage || !store.urlProfileImage){
+    return false;
+  }
+
+  return true;
+}
+
+export async function logout() {
+  if (await changeStoreStatus("CLOSED")) {
+    destroyCookie(null, "token");
+    destroyCookie(null, "refreshToken");
+    window.location.href = "/";
   }
 }
