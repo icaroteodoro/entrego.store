@@ -16,8 +16,15 @@ export default function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
+  const [error, setError] = useState("");
+
   const handleLogin = async () => {
-    await loginStore(email, password);
+    setError('');
+    try {
+      await loginStore(email, password);
+    }catch(error) {
+      setError("Usuário ou senha inválidos!")
+    }
   };
 
   const [visiblePass, setVisiblePass] = useState(false);
@@ -33,6 +40,11 @@ export default function Login() {
         </div>
 
         <form className="mb-5" action="">
+          <div className={`border border-red-500 p-3 bg-red-100 rounded-md mb-3 ${error ? 'flex': 'hidden'}`}>
+            <p className="text-red-500 text-sm">
+              {error}
+            </p>
+          </div>
           <div className="flex flex-col mb-3">
             <label className="text-sm" htmlFor="email">
               E-mail
