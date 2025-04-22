@@ -12,9 +12,20 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
-import { MapPin, User, CreditCard, Building2, MapPinned, Home as HomeIcon, Hash, FileText } from "lucide-react";
+import {
+  MapPin,
+  User,
+  CreditCard,
+  Building2,
+  MapPinned,
+  Home as HomeIcon,
+  Hash,
+  FileText,
+} from "lucide-react";
 import { useSidebar } from "@/components/ui/sidebar";
-import { useEffect } from "react";
+import { useCallback, useEffect, useState } from "react";
+import websocketService from "@/services/websocket-service";
+import { toast } from "sonner";
 
 const chartData = [
   { day: "Domingo", orders: 214 },
@@ -27,9 +38,9 @@ const chartData = [
 ];
 
 const paymentMethodMap = {
-  'CREDITO': 'Crédito',
-  'DEBITO': 'Débito',
-  'PIX': 'Pix',
+  CREDITO: "Crédito",
+  DEBITO: "Débito",
+  PIX: "Pix",
 };
 
 export default function Home() {
@@ -43,14 +54,33 @@ export default function Home() {
     deliveredOrders,
     canceledOrders,
     setOrderView,
-    updateStatusOrder
-  } = useOrders(false);
+    refreshOrders,
+    updateStatusOrder,
+  } = useOrders(true);
 
-  const {setPageTitle} = useSidebar();
+  const { setPageTitle } = useSidebar();
 
   useEffect(() => {
     setPageTitle("Home");
+    websocketService.connect();
+
+    websocketService.addOrderListener(receivedOrder);
+
+    return () => {
+      websocketService.disconnect();
+    };
   }, []);
+
+  const playNotificationSound = useCallback(() => {
+    const audio = new Audio("/sounds/notification-sound.m4a");
+    audio.play();
+  }, []);
+
+  const receivedOrder = async () => {
+    await refreshOrders();
+    toast("Você tem um novo pedido!");
+    playNotificationSound();
+  };
 
   function formatToBRL(value?: number): string {
     if (typeof value !== "number" || isNaN(value)) {
@@ -66,12 +96,15 @@ export default function Home() {
   function getDay() {
     const today = new Date();
     const formattedDate = today.toLocaleDateString("pt-BR");
-    return formattedDate; 
+    return formattedDate;
   }
 
   // Função para obter o nome amigável da categoria
   const getPaymentMethodDisplayName = (paymentMethodCode: string) => {
-    return paymentMethodMap[paymentMethodCode as keyof typeof paymentMethodMap] || paymentMethodCode;
+    return (
+      paymentMethodMap[paymentMethodCode as keyof typeof paymentMethodMap] ||
+      paymentMethodCode
+    );
   };
 
   function getDeliveryTime(date: any): string {
@@ -85,12 +118,12 @@ export default function Home() {
 
   function handleTotalForOrder(items: iItems[]): string {
     if (!items || items.length === 0) {
-        return "";
+      return "";
     }
 
     const total = items.reduce((sum, item) => sum + item.price, 0);
     return formatToBRL(total);
-}
+  }
 
   function handleTotalForDay(): string {
     const total = orders.reduce((orderTotal, order) => {
@@ -130,8 +163,12 @@ export default function Home() {
                       clientName={order.clientName}
                       deliveryTime={getDeliveryTime(order.deliveryTime)}
                       key={order.numberOrder}
-                      updateStatusOrder={() => updateStatusOrder('ACCEPTED', order.id)}
-                      cancelOrder={() => updateStatusOrder('CANCELED', order.id)}
+                      updateStatusOrder={() =>
+                        updateStatusOrder("ACCEPTED", order.id)
+                      }
+                      cancelOrder={() =>
+                        updateStatusOrder("CANCELED", order.id)
+                      }
                     />
                   ))}
                 </AccordionContent>
@@ -150,8 +187,9 @@ export default function Home() {
                       clientName={order.clientName}
                       deliveryTime={getDeliveryTime(order.deliveryTime)}
                       key={order.numberOrder}
-                      updateStatusOrder={() => updateStatusOrder('SENT', order.id)}
-                      
+                      updateStatusOrder={() =>
+                        updateStatusOrder("SENT", order.id)
+                      }
                     />
                   ))}
                 </AccordionContent>
@@ -170,7 +208,9 @@ export default function Home() {
                       clientName={order.clientName}
                       deliveryTime={getDeliveryTime(order.deliveryTime)}
                       key={order.numberOrder}
-                      updateStatusOrder={() => updateStatusOrder('FINISHED', order.id)}
+                      updateStatusOrder={() =>
+                        updateStatusOrder("FINISHED", order.id)
+                      }
                     />
                   ))}
                 </AccordionContent>
@@ -221,7 +261,10 @@ export default function Home() {
             <div className="w-4/6 relative">
               {/* HEADER */}
               <div className="absolute bg-white top-0 left-0 h-16 w-full border-b flex items-center justify-between px-4 gap-5">
-                <h2 className="text-xl font-semibold">Número do pedido: <span className="text-primary">#{orderView.numberOrder}</span></h2>
+                <h2 className="text-xl font-semibold">
+                  Número do pedido:{" "}
+                  <span className="text-primary">#{orderView.numberOrder}</span>
+                </h2>
               </div>
               {/* HEADER */}
               <div className="flex pt-16 w-full h-full">
@@ -240,13 +283,15 @@ export default function Home() {
                         <MapPin className="w-5 h-5" />
                         <p className="font-medium">Endereço de Entrega</p>
                       </div>
-                      
+
                       <div className="space-y-3 pl-7">
                         <div className="flex items-center gap-2">
                           <Building2 className="w-4 h-4 text-zinc-400" />
                           <div>
                             <p className="text-sm text-zinc-500">Cidade</p>
-                            <p className="font-medium">{orderView.address.city}</p>
+                            <p className="font-medium">
+                              {orderView.address.city}
+                            </p>
                           </div>
                         </div>
 
@@ -254,7 +299,9 @@ export default function Home() {
                           <MapPinned className="w-4 h-4 text-zinc-400" />
                           <div>
                             <p className="text-sm text-zinc-500">Bairro</p>
-                            <p className="font-medium">{orderView.address.neighborhood}</p>
+                            <p className="font-medium">
+                              {orderView.address.neighborhood}
+                            </p>
                           </div>
                         </div>
 
@@ -262,7 +309,9 @@ export default function Home() {
                           <HomeIcon className="w-4 h-4 text-zinc-400" />
                           <div>
                             <p className="text-sm text-zinc-500">Logradouro</p>
-                            <p className="font-medium">{orderView.address.street}</p>
+                            <p className="font-medium">
+                              {orderView.address.street}
+                            </p>
                           </div>
                         </div>
 
@@ -270,7 +319,9 @@ export default function Home() {
                           <Hash className="w-4 h-4 text-zinc-400" />
                           <div>
                             <p className="text-sm text-zinc-500">Número</p>
-                            <p className="font-medium">{orderView.address.number}</p>
+                            <p className="font-medium">
+                              {orderView.address.number}
+                            </p>
                           </div>
                         </div>
 
@@ -278,7 +329,9 @@ export default function Home() {
                           <FileText className="w-4 h-4 text-zinc-400" />
                           <div>
                             <p className="text-sm text-zinc-500">Complemento</p>
-                            <p className="font-medium">{orderView.address.complement || "-"}</p>
+                            <p className="font-medium">
+                              {orderView.address.complement || "-"}
+                            </p>
                           </div>
                         </div>
                       </div>
@@ -287,8 +340,12 @@ export default function Home() {
                     <div className="flex items-center gap-2 bg-zinc-50 p-3 rounded-lg">
                       <CreditCard className="w-5 h-5 text-primary" />
                       <div>
-                        <p className="text-sm text-zinc-500">Forma de pagamento</p>
-                        <p className="font-medium">{getPaymentMethodDisplayName(orderView.paymentMethod)}</p>
+                        <p className="text-sm text-zinc-500">
+                          Forma de pagamento
+                        </p>
+                        <p className="font-medium">
+                          {getPaymentMethodDisplayName(orderView.paymentMethod)}
+                        </p>
                       </div>
                     </div>
                   </div>
@@ -316,18 +373,23 @@ export default function Home() {
               <div className="absolute bg-white bottom-0 left-0 h-16 w-full border-t flex items-center justify-between px-4">
                 <div>
                   <h2 className="font-semibold">
-                    {handleTotalForOrder(orderView.items)}
+                    Total: {formatToBRL(orderView.total)}
                   </h2>
                 </div>
                 <div className="flex gap-5">
-                  {orderView?.status === "FINISHED" || orderView.status === 'SENT' ? (
+                  {orderView?.status === "FINISHED" ||
+                  orderView.status === "SENT" ? (
                     <></>
                   ) : (
                     <Button
                       className={`${
                         orderView?.status === "MADE" ? "w-[48%]" : "w-full"
                       } bg-green-600 hover:bg-green-700 hover:cursor-pointer`}
-                      onClick={orderView.status === 'MADE' ? () => updateStatusOrder("ACCEPTED", orderView.id) : () => updateStatusOrder("SENT", orderView.id)}
+                      onClick={
+                        orderView.status === "MADE"
+                          ? () => updateStatusOrder("ACCEPTED", orderView.id)
+                          : () => updateStatusOrder("SENT", orderView.id)
+                      }
                     >
                       {orderView?.status === "MADE"
                         ? "Aceitar pedido"
@@ -337,7 +399,12 @@ export default function Home() {
                     </Button>
                   )}
                   {orderView?.status === "MADE" ? (
-                    <Button onClick={() => updateStatusOrder("CANCELED", orderView.id)} className="w-[48%] bg-red-600 hover:bg-red-700 hover:cursor-pointer">
+                    <Button
+                      onClick={() =>
+                        updateStatusOrder("CANCELED", orderView.id)
+                      }
+                      className="w-[48%] bg-red-600 hover:bg-red-700 hover:cursor-pointer"
+                    >
                       Rejeitar pedido
                     </Button>
                   ) : (
@@ -354,18 +421,16 @@ export default function Home() {
               </div>
               {/* FOOTER */}
             </div>
-          ) :
-          orders.length === 0 && isLoading === false ?
-          (
+          ) : orders.length === 0 && isLoading === false ? (
             <div className="flex justify-center items-center w-full flex-col">
               <h2 className="text-2xl font-bold text-primary">
                 Sentimos muito,
               </h2>
               <h2>mas você ainda não recebeu nenhum pedido para hoje</h2>
             </div>
-          ):
-          <></>
-          }
+          ) : (
+            <></>
+          )}
         </Card>
         <Separator className="mt-5" />
         {/* PERFORMANCE */}
