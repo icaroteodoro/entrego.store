@@ -1,7 +1,7 @@
-'use client'
+"use client";
 
-import { ChevronsUpDown, LogOutIcon } from "lucide-react"
-import Logo from "../assets/svg/logo.svg"
+import { AlertCircle, ChevronsUpDown, LogOutIcon } from "lucide-react";
+import Logo from "../assets/svg/logo.svg";
 
 import {
   DropdownMenu,
@@ -11,13 +11,13 @@ import {
   DropdownMenuSeparator,
   DropdownMenuShortcut,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
+} from "@/components/ui/dropdown-menu";
 import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
   useSidebar,
-} from "@/components/ui/sidebar"
+} from "@/components/ui/sidebar";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -27,67 +27,103 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-} from "@/components/ui/alert-dialog"
-import Image from "next/image"
-import { DropdownMenuGroup } from "@radix-ui/react-dropdown-menu"
-import { logout } from "@/services/store-service"
-import { useStore } from "@/context/store-context"
-import { useEffect, useState } from "react"
+} from "@/components/ui/alert-dialog";
+import Image from "next/image";
+import { DropdownMenuGroup } from "@radix-ui/react-dropdown-menu";
+import { logout, verifyAddressStore, verifyImagesStore } from "@/services/store-service";
+import { useStore } from "@/context/store-context";
+import { useEffect, useState } from "react";
+import { Alert, AlertDescription, AlertTitle } from "./ui/alert";
 
 const statusMap = {
   OPEN: {
     name: "Aberto",
-    color: "green",
+    color: "bg-green-500",
   },
   CLOSED: {
     name: "Fechado",
-    color: "red"
+    color: "bg-red-500",
   },
   CLOSING: {
     name: "Fechando",
-    color: "orange"
-  }
-}
+    color: "bg-orange-500",
+  },
+};
 
 export function HeaderSidebar() {
-  const { isMobile } = useSidebar()
+  const { isMobile } = useSidebar();
   const { store, storeStatus, updateStatus } = useStore();
   const [showLogoutAlert, setShowLogoutAlert] = useState(false);
-  
-  
-  
+  const [messageError, setMessageError] = useState('');
+
+
+
+  const [showAlertAddress, setShowAlertAddress] = useState(false);
+
   if (!store) {
-    return null
+    return null;
   }
 
+  const handleStatusChange = async (status: "OPEN" | "CLOSED" | "CLOSING") => {
+    const containAddress = await verifyAddressStore();
+    const containImages = await verifyImagesStore();
 
+    if(status === 'OPEN' || status === 'CLOSING') {
+      if(containAddress) {
+        await updateStatus(status);
+        return;
+      }
+      setMessageError('Você precisa cadastrar todos os campos do seu endereço para poder abrir a loja!');
+      setShowAlertAddress(true);
+      setTimeout(() => {
+        setShowAlertAddress(false);
+      }, 5000)
+      return;
+    }
 
+    if(!containImages) {
+      setMessageError('Você precisa cadastrar todas as imagens da loja para poder abrir!');
+      setShowAlertAddress(true);
+      setTimeout(() => {
+        setShowAlertAddress(false);
+      }, 5000)
+    }
 
-  const handleStatusChange = async (status: 'OPEN' | 'CLOSED' | 'CLOSING') => {
-    await updateStatus(status)
-  }
+    await updateStatus(status);
+  };
 
   const handleLogoutClick = () => {
-    if (storeStatus === 'OPEN' || storeStatus === 'CLOSING') {
+    if (storeStatus === "OPEN" || storeStatus === "CLOSING") {
       setShowLogoutAlert(true);
     } else {
       logout();
     }
-  }
+  };
 
   return (
     <>
+      <Alert className={showAlertAddress ? '' : 'hidden'} variant="destructive">
+        <AlertCircle className="h-4 w-4" />
+        <AlertTitle>Opsss</AlertTitle>
+        <AlertDescription>
+          {messageError}
+        </AlertDescription>
+      </Alert>
       <AlertDialog open={showLogoutAlert} onOpenChange={setShowLogoutAlert}>
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Atenção!</AlertDialogTitle>
             <AlertDialogDescription>
-              A loja está aberta. Se você sair agora, ela será fechada automaticamente. Deseja continuar?
+              A loja está aberta. Se você sair agora, ela será fechada
+              automaticamente. Deseja continuar?
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancelar</AlertDialogCancel>
-            <AlertDialogAction onClick={() => logout()} className="bg-destructive text-destructive-foreground hover:bg-destructive/90 text-white">
+            <AlertDialogAction
+              onClick={() => logout()}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90 text-white"
+            >
               Sair e Fechar Loja
             </AlertDialogAction>
           </AlertDialogFooter>
@@ -102,18 +138,20 @@ export function HeaderSidebar() {
                 size="lg"
                 className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground focus-visible:shadow-none"
               >
-                <div className="flex aspect-square size-7 items-center justify-center rounded-lg bg-white text-sidebar-primary-foreground">
-                  <Image alt="Logotipo" src={Logo} className="size-6" />
+                <div className="flex aspect-square size-10 items-center justify-center rounded-lg bg-white text-sidebar-primary-foreground overflow-hidden">
+                  <Image alt="Logotipo" src={store.urlProfileImage} width={400} height={400} className="w-full" />
                 </div>
                 <div className="grid flex-1 text-left text-sm leading-tight">
-                  <span className="truncate font-semibold">
-                    {store.name}
-                  </span>
+                  <span className="truncate font-semibold">{store.name}</span>
                   <div className="flex items-center gap-2">
                     {storeStatus && (
                       <>
-                        <span className="truncate text-xs">{statusMap[storeStatus].name}</span>
-                        <div className={`size-2 rounded-full bg-${statusMap[storeStatus].color}-500`}></div>
+                        <span className="truncate text-xs">
+                          {statusMap[storeStatus].name}
+                        </span>
+                        <div
+                          className={`size-2 rounded-full ${statusMap[storeStatus].color}`}
+                        ></div>
                       </>
                     )}
                   </div>
@@ -131,30 +169,36 @@ export function HeaderSidebar() {
                 Status
               </DropdownMenuLabel>
               <DropdownMenuItem
-                onClick={() => handleStatusChange('OPEN')}
+                onClick={() => handleStatusChange("OPEN")}
                 className="gap-2 p-2"
               >
                 {statusMap.OPEN.name}
                 <DropdownMenuShortcut>
-                  <div className={`size-2 rounded-full bg-${statusMap.OPEN.color}-500`}></div>
+                  <div
+                    className={`size-2 rounded-full ${statusMap.OPEN.color}`}
+                  ></div>
                 </DropdownMenuShortcut>
               </DropdownMenuItem>
               <DropdownMenuItem
-                onClick={() => handleStatusChange('CLOSING')}
+                onClick={() => handleStatusChange("CLOSING")}
                 className="gap-2 p-2"
               >
                 {statusMap.CLOSING.name}
                 <DropdownMenuShortcut>
-                  <div className={`size-2 rounded-full bg-${statusMap.CLOSING.color}-500`}></div>
+                  <div
+                    className={`size-2 rounded-full ${statusMap.CLOSING.color}`}
+                  ></div>
                 </DropdownMenuShortcut>
               </DropdownMenuItem>
               <DropdownMenuItem
-                onClick={() => handleStatusChange('CLOSED')}
+                onClick={() => handleStatusChange("CLOSED")}
                 className="gap-2 p-2"
               >
                 {statusMap.CLOSED.name}
                 <DropdownMenuShortcut>
-                  <div className={`size-2 rounded-full bg-${statusMap.CLOSED.color}-500`}></div>
+                  <div
+                    className={`size-2 rounded-full ${statusMap.CLOSED.color}`}
+                  ></div>
                 </DropdownMenuShortcut>
               </DropdownMenuItem>
               <DropdownMenuSeparator />
@@ -168,5 +212,5 @@ export function HeaderSidebar() {
         </SidebarMenuItem>
       </SidebarMenu>
     </>
-  )
+  );
 }
