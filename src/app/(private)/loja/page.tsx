@@ -9,6 +9,7 @@ import { PencilIcon, XIcon, CheckIcon, LockIcon, AlertCircle } from "lucide-reac
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { useSidebar } from "@/components/ui/sidebar";
+import HeaderCardStore from "@/components/header-card-store";
 
 // Mapeamento de categorias para exibição mais amigável
 const categoryMap = {
@@ -135,7 +136,8 @@ export default function Loja() {
           </Alert>
         )}
         
-        <Card className="w-full rounded-md shadow-md overflow-hidden">
+        <Card className="w-full rounded-md shadow-md overflow-hidden pt-0">
+          <HeaderCardStore srcCoverImg={store.urlCoverImage} srcProfileImg={store.urlProfileImage}/>
           <CardHeader className="">
             <CardTitle className="text-2xl">Detalhes da Loja</CardTitle>
           </CardHeader>
