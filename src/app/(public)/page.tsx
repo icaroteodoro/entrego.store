@@ -2,7 +2,7 @@ AggregateError
 import { Button } from "@/components/ui/button";
 import "@/assets/css/home.css";
 import { Input } from "@/components/ui/input";
-import Header from "../../components/header"
+import Header from "@/components/header"
 
 export default function Home() {
 
