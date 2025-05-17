@@ -15,16 +15,22 @@ import { loginStore } from "@/services/store-service";
 export default function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
 
   const [error, setError] = useState("");
 
   const handleLogin = async () => {
+    setIsLoading(true)
     setError('');
     try {
       await loginStore(email, password);
+      setIsLoading(false);
     }catch(error) {
       setError("Usuário ou senha inválidos!")
+      setIsLoading(false);
     }
+
+
   };
 
   const [visiblePass, setVisiblePass] = useState(false);
@@ -83,7 +89,9 @@ export default function Login() {
             onClick={() => handleLogin()}
             className="w-full mt-5 hover:cursor-pointer"
           >
-            Login via e-mail
+            {
+              isLoading ?<div className="w-6 h-6 border-3 border-white border-t-primary rounded-full animate-spin"></div> : 'Login via e-mail'
+            }
           </Button>
         </form>
 

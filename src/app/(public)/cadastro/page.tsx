@@ -18,6 +18,8 @@ export default function Cadastro() {
   const [document, setDocument] = useState("");
   const [email, setEmail] = useState("");
 
+  const [isLoading, setIsLoading] = useState(false);
+
   const [password, setPassword] = useState("");
   const [confirmPass, setConfirmPass] = useState("");
 
@@ -66,6 +68,7 @@ export default function Cadastro() {
   };
   
   const register = async () => {
+    setIsLoading(true);
     if(password === confirmPass) {
       const cleanDocument = getCleanDocument();
       const response = await createStore({
@@ -74,8 +77,10 @@ export default function Cadastro() {
         email, 
         password
       });
+      setIsLoading(false);
     } else {
       alert("A senha deve ser igual no campo de confirmação!");
+      setIsLoading(false);
     }
   }
 
@@ -164,7 +169,9 @@ export default function Cadastro() {
             </div>
           </div>
           <Button onClick={() => register()} type="button" className="w-full mt-5 hover:cursor-pointer">
-            Cadastrar
+            {
+              isLoading ?<div className="w-6 h-6 border-3 border-white border-t-primary rounded-full animate-spin"></div> : 'Cadastrar'
+            }
           </Button>
         </form>
 
