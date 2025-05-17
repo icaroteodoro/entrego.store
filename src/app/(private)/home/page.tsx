@@ -434,7 +434,7 @@ export default function Home() {
         </Card>
         <Separator className="mt-5" />
         {/* PERFORMANCE */}
-        <h2 className="text-3xl font-semibold my-5">Performance da loja</h2>
+        {/* <h2 className="text-3xl font-semibold my-5">Performance da loja</h2>
         <Card className="w-full p-5">
           <CardTitle className="text-2xl">
             Acompanhamento
@@ -443,7 +443,6 @@ export default function Home() {
             </span>
           </CardTitle>
           <CardContent className="px-0 flex space-x-10">
-            {/* Card da perfomance do dia */}
             <Card className="px-3 border-t-8 border-primary border-b-0 border-l-0 border-r-0 w-max">
               <CardTitle className="px-3">
                 Hoje
@@ -465,7 +464,7 @@ export default function Home() {
                 </div>
               </CardContent>
             </Card>
-            {/* Card da perfomance do dia */}
+
             <Card className="px-3 border-t-8 border-primary border-b-0 border-l-0 border-r-0 w-max">
               <CardTitle className="px-3">Março</CardTitle>
               <CardContent className="flex px-3 gap-5">
@@ -497,7 +496,7 @@ export default function Home() {
               countOrders={489}
             />
           </CardContent>
-        </Card>
+        </Card> */}
         {/* PERFORMANCE */}
       </div>
     </section>
