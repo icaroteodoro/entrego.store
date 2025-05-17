@@ -122,7 +122,7 @@ export function HeaderSidebar() {
             <AlertDialogCancel>Cancelar</AlertDialogCancel>
             <AlertDialogAction
               onClick={() => logout()}
-              className="bg-destructive text-destructive-foreground hover:bg-destructive/90 text-white"
+              className="bg-destructive text-white hover:bg-destructive/90"
             >
               Sair e Fechar Loja
             </AlertDialogAction>
@@ -138,8 +138,8 @@ export function HeaderSidebar() {
                 size="lg"
                 className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground focus-visible:shadow-none"
               >
-                <div className="flex aspect-square size-10 items-center justify-center rounded-lg bg-white text-sidebar-primary-foreground overflow-hidden">
-                  <Image alt="Logotipo" src={store.urlProfileImage} width={400} height={400} className="w-full" />
+                <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-white text-sidebar-primary-foreground">
+                  <Image alt="Logotipo" src={store.urlProfileImage} width={400} height={400} className="w-full rounded-lg" />
                 </div>
                 <div className="grid flex-1 text-left text-sm leading-tight">
                   <span className="truncate font-semibold">{store.name}</span>

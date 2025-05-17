@@ -44,11 +44,6 @@ const items = [
     url: "/cardapio",
     icon: NotebookText,
   },
-  // {
-  //   title: "Configurações",
-  //   url: "/configuracoes",
-  //   icon: Settings,
-  // },
 ];
 
 
