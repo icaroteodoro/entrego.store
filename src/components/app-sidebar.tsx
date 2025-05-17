@@ -88,7 +88,7 @@ export default function AppSidebar() {
   
 
   return (
-    <Sidebar onClick={() => console.log(containAddress)} collapsible="icon">
+    <Sidebar collapsible="icon">
       <SidebarHeader className="flex flex-row justify-strart items-center">
         <SidebarContent>
           <HeaderSidebar/>

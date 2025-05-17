@@ -3,7 +3,9 @@ import SockJS from "sockjs-client";
 import { getStore } from "./store-service";
 import { resolve } from "path";
 
-const WEBSOCKET_API_URL = "http://localhost:8080/ws";
+const BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
+
+const WEBSOCKET_API_URL = `${BASE_URL}/ws`;
 
 const ORDER_TOPIC_URL = "/topic/orders";
 
