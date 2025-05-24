@@ -3,9 +3,9 @@ import { parseCookies, setCookie, destroyCookie } from "nookies";
 
 import jwt from "jsonwebtoken";
 
-
+const BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080;
 const api = axios.create({
-  baseURL: process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080",
+  baseURL: BASE_URL,
   headers: {
     "Content-Type": "application/json",
     "Accept": "application/json",
@@ -65,7 +65,7 @@ api.interceptors.request.use(
         logout()
       }else{
         const response = await axios.post(
-          "http://localhost:8080/auth/store/refresh-token",
+          `${BASE_URL}/auth/store/refresh-token`,
           { refreshToken }
         );
   
