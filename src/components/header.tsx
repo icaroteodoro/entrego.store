@@ -10,7 +10,7 @@ export default function Header() {
     <nav className="absolute top-0 left-0 flex w-full h-20 align-middle justify-between bg-white">
       <div className="container flex items-center justify-between">
         <div>
-          <Image className="w-32" alt="Logo" src={Logo} />
+          <Image className="w-32" alt="Logo" src={Logo.src} />
         </div>
         <div className="flex items-center gap-8">
           <div className="hidden lg:flex align-baseline gap-3">

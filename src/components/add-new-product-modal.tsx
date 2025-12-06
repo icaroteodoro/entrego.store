@@ -16,8 +16,9 @@ import {
   createCategory,
   getProductCategories,
   iProduct,
-  iProductCategory,
   createProduct,
+  iProductOptionGroup,
+  iProductCategory,
 } from "@/services/products-service";
 import {
   Select,
@@ -28,6 +29,7 @@ import {
   SelectValue,
 } from "./ui/select";
 import AddNewCategoryModal from "./add-new-category-modal";
+import ProductOptionsForm from "./product-options-form";
 import { Alert, AlertDescription } from "./ui/alert";
 import { toast } from "sonner";
 import { getStore } from "@/services/store-service";
@@ -42,11 +44,13 @@ export default function AddNewProductModal({ onProductAdded }: AddNewProductModa
   const [valor, setValor] = useState("");
   const [productCategory, setProductCategory] = useState<iProductCategory>();
   const [desconto, setDesconto] = useState("");
-  const [file, setFile] = useState<File | null>(null); 
+  const [file, setFile] = useState<File | null>(null);
   const [newCategoryName, setNewCategoryName] = useState("");
   const [allCategories, setAllCategories] = useState<iProductCategory[] | null>(
     null
   );
+  const [optionGroups, setOptionGroups] = useState<iProductOptionGroup[]>([]);
+
 
   // Estados para UX
   const [isLoading, setIsLoading] = useState(false);
@@ -141,7 +145,8 @@ export default function AddNewProductModal({ onProductAdded }: AddNewProductModa
     setValor("");
     setProductCategory(undefined);
     setDesconto("");
-    setFile(null)
+    setFile(null);
+    setOptionGroups([]);
     setErrors({ name: false, valor: false, category: false });
     setSuccessMessage("");
   };
@@ -151,27 +156,28 @@ export default function AddNewProductModal({ onProductAdded }: AddNewProductModa
 
     setIsLoading(true);
 
-    
 
-    
+
+
 
     try {
       const valorNumerico = parseFloat(valor.replace(/\D/g, "")) / 100;
       const descontoNumerico = parseInt(desconto.replace("%", "")) / 100 || 0;
-      
+
       const produto: any = {
         name,
         price: valorNumerico,
         productCategory: productCategory!,
         discount: isNaN(descontoNumerico) ? 0 : descontoNumerico,
+        optionGroups: optionGroups,
       };
 
-      if(!file) {
+      if (!file) {
         toast('Você deve inserir uma imagem!', {
           icon: <XCircle className="text-red-500" />,
           className: "space-x-3",
         })
-        return ;
+        return;
       }
 
       await createProduct(produto, file);
@@ -236,161 +242,175 @@ export default function AddNewProductModal({ onProductAdded }: AddNewProductModa
           Adicionar produto
         </Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-[425px]">
-        <DialogHeader>
-          <DialogTitle>Adicionar produto</DialogTitle>
-          <DialogDescription>
-            Preencha os dados do novo produto
-          </DialogDescription>
-        </DialogHeader>
+      <DialogContent className="sm:max-w-[600px] h-[90vh] sm:h-auto sm:max-h-[85vh] flex flex-col p-0 gap-0">
+        <div className="p-6 pb-0">
+          <DialogHeader>
+            <DialogTitle>Adicionar produto</DialogTitle>
+            <DialogDescription>
+              Preencha os dados do novo produto
+            </DialogDescription>
+          </DialogHeader>
 
-        {successMessage && (
-          <Alert className="bg-green-50 border-green-200 text-green-800">
-            <Check className="h-4 w-4 text-green-600" />
-            <AlertDescription>{successMessage}</AlertDescription>
-          </Alert>
-        )}
+          {successMessage && (
+            <Alert className="bg-green-50 border-green-200 text-green-800 mt-4">
+              <Check className="h-4 w-4 text-green-600" />
+              <AlertDescription>{successMessage}</AlertDescription>
+            </Alert>
+          )}
+        </div>
 
-        <div className="grid gap-4 py-4">
-          <div className="grid grid-cols-4 items-center gap-4">
-            <Label htmlFor="name" className="text-right">
-              Nome*
-            </Label>
-            <div className="col-span-3">
-              <Input
-                id="name"
-                value={name}
-                onChange={handleNameChange}
-                className={errors.name ? "border-red-500" : ""}
-                disabled={isLoading}
-              />
-              {errors.name && (
-                <p className="text-red-500 text-xs mt-1">Nome é obrigatório</p>
-              )}
-            </div>
-          </div>
-
-          <div className="grid grid-cols-4 items-center gap-4">
-            <Label htmlFor="valor" className="text-right">
-              Valor*
-            </Label>
-            <div className="col-span-3">
-              <Input
-                id="valor"
-                value={valor}
-                onChange={handleValorChange}
-                placeholder="R$ 0,00"
-                className={errors.valor ? "border-red-500" : ""}
-                disabled={isLoading}
-              />
-              {errors.valor && (
-                <p className="text-red-500 text-xs mt-1">Valor é obrigatório</p>
-              )}
-            </div>
-          </div>
-
-          <div className="grid grid-cols-4 items-center gap-4">
-            <Label htmlFor="productCategory" className="text-right">
-              Categoria*
-            </Label>
-            <div className="col-span-3">
-              <div className="flex gap-2">
-                <Select
-                  onValueChange={handleCategory}
-                  disabled={isLoading}
-                  value={productCategory?.name}
-                >
-                  <SelectTrigger
-                    className={`flex-1 ${errors.category ? "border-red-500" : ""
-                      }`}
-                  >
-                    <SelectValue placeholder="Selecione uma categoria" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectGroup>
-                      {allCategories?.map((category) => (
-                        <SelectItem
-                          key={category.id || `category-${category.name}`}
-                          value={category.name}
-                        >
-                          {category.name}
-                        </SelectItem>
-                      ))}
-                    </SelectGroup>
-                  </SelectContent>
-                </Select>
-                <AddNewCategoryModal
-                  saveCategory={saveCategory}
-                  name={newCategoryName}
-                  setName={setNewCategoryName}
+        <div className="flex-1 overflow-y-auto px-6 py-4">
+          <div className="grid gap-4">
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="name" className="text-right">
+                Nome*
+              </Label>
+              <div className="col-span-3">
+                <Input
+                  id="name"
+                  value={name}
+                  onChange={handleNameChange}
+                  className={errors.name ? "border-red-500" : ""}
                   disabled={isLoading}
                 />
+                {errors.name && (
+                  <p className="text-red-500 text-xs mt-1">Nome é obrigatório</p>
+                )}
               </div>
-              {errors.category && (
-                <p className="text-red-500 text-xs mt-1">
-                  Categoria é obrigatória
-                </p>
-              )}
             </div>
-          </div>
 
-          <div className="grid grid-cols-4 items-center gap-4">
-            <Label htmlFor="desconto" className="text-right">
-              Desconto
-            </Label>
-            <Input
-              id="desconto"
-              className="col-span-3"
-              value={desconto}
-              onChange={handleDescontoChange}
-              placeholder="0%"
-              disabled={isLoading}
-            />
-          </div>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="valor" className="text-right">
+                Valor*
+              </Label>
+              <div className="col-span-3">
+                <Input
+                  id="valor"
+                  value={valor}
+                  onChange={handleValorChange}
+                  placeholder="R$ 0,00"
+                  className={errors.valor ? "border-red-500" : ""}
+                  disabled={isLoading}
+                />
+                {errors.valor && (
+                  <p className="text-red-500 text-xs mt-1">Valor é obrigatório</p>
+                )}
+              </div>
+            </div>
 
-          <div className="grid grid-cols-4 items-center gap-4">
-            <Label onClick={() => console.log(file)} htmlFor="desconto" className="text-right">
-              Imagem
-            </Label>
-            <Input
-              id="file"
-              className="col-span-3"
-              type="file"
-              onChange={e => setFile(e.target.files?.[0] || null)}
-              placeholder="0%"
-              disabled={isLoading}
-            />
-          </div>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="productCategory" className="text-right">
+                Categoria*
+              </Label>
+              <div className="col-span-3">
+                <div className="flex gap-2">
+                  <Select
+                    onValueChange={handleCategory}
+                    disabled={isLoading}
+                    value={productCategory?.name}
+                  >
+                    <SelectTrigger
+                      className={`flex-1 ${errors.category ? "border-red-500" : ""
+                        }`}
+                    >
+                      <SelectValue placeholder="Selecione uma categoria" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectGroup>
+                        {allCategories?.map((category) => (
+                          <SelectItem
+                            key={category.id || `category-${category.name}`}
+                            value={category.name}
+                          >
+                            {category.name}
+                          </SelectItem>
+                        ))}
+                      </SelectGroup>
+                    </SelectContent>
+                  </Select>
+                  <AddNewCategoryModal
+                    saveCategory={saveCategory}
+                    name={newCategoryName}
+                    setName={setNewCategoryName}
+                    disabled={isLoading}
+                  />
+                </div>
+                {errors.category && (
+                  <p className="text-red-500 text-xs mt-1">
+                    Categoria é obrigatória
+                  </p>
+                )}
+              </div>
+            </div>
 
-          <div className="text-xs text-gray-500 mt-2">
-            * Campos obrigatórios
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="desconto" className="text-right">
+                Desconto
+              </Label>
+              <Input
+                id="desconto"
+                className="col-span-3"
+                value={desconto}
+                onChange={handleDescontoChange}
+                placeholder="0%"
+                disabled={isLoading}
+              />
+            </div>
+
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label onClick={() => console.log(file)} htmlFor="desconto" className="text-right">
+                Imagem
+              </Label>
+              <Input
+                id="file"
+                className="col-span-3"
+                type="file"
+                onChange={e => setFile(e.target.files?.[0] || null)}
+                placeholder="0%"
+                disabled={isLoading}
+              />
+            </div>
+
+            <div className="border-t pt-4">
+              <ProductOptionsForm
+                optionGroups={optionGroups}
+                setOptionGroups={setOptionGroups}
+                disabled={isLoading}
+              />
+            </div>
+
+            <div className="text-xs text-gray-500 mt-2">
+              * Campos obrigatórios
+            </div>
           </div>
         </div>
 
-        <DialogFooter className="gap-2">
-          <Button
-            className="bg-red-500 hover:bg-red-600 text-white hover:cursor-pointer"
-            onClick={() => setIsOpen(false)}
-            disabled={isLoading}
-          >
-            <X className="mr-2" />
-            Cancelar
-          </Button>
-          <Button
-            className="bg-green-600 hover:bg-green-500 hover:cursor-pointer"
-            onClick={salvarProduto}
-            disabled={isLoading}
-          >
-            {isLoading ? (
-              <span className="animate-pulse">Processando...</span>
-            ) : (
-              <>
-                <Check className="mr-2" />
-                Salvar produto
-              </>
-            )}
-          </Button>
-        </DialogFooter>
+        <div className="p-6 pt-0">
+          <DialogFooter className="gap-2">
+            <Button
+              className="bg-red-500 hover:bg-red-600 text-white hover:cursor-pointer"
+              onClick={() => setIsOpen(false)}
+              disabled={isLoading}
+            >
+              <X className="mr-2" />
+              Cancelar
+            </Button>
+            <Button
+              className="bg-green-600 hover:bg-green-500 hover:cursor-pointer"
+              onClick={salvarProduto}
+              disabled={isLoading}
+            >
+              {isLoading ? (
+                <span className="animate-pulse">Processando...</span>
+              ) : (
+                <>
+                  <Check className="mr-2" />
+                  Salvar produto
+                </>
+              )}
+            </Button>
+          </DialogFooter>
+        </div>
       </DialogContent>
     </Dialog>
   );

@@ -7,13 +7,28 @@ export interface iProductCategory {
   name: string;
 }
 
+export interface iProductOption {
+  name: string;
+  description?: string;
+  price: number;
+  isAvailable: boolean;
+}
+
+export interface iProductOptionGroup {
+  name: string;
+  minSelection: number;
+  maxSelection: number;
+  options: iProductOption[];
+}
+
 export interface iProduct {
   id: string;
   name: string;
   price: number;
   discount: number;
   productCategory: iProductCategory;
-  urlImage: string
+  urlImage: string;
+  optionGroups?: iProductOptionGroup[];
 }
 
 export async function getProductCategories(): Promise<iProductCategory[]> {
@@ -62,6 +77,7 @@ export async function createProduct(product: iProduct, file: File) {
       productCategoryId: product.productCategory.id,
       discount: product.discount,
       storeId,
+      optionGroups: product.optionGroups,
     };
     const formData = new FormData();
     formData.append("data", JSON.stringify(productRequest));
@@ -76,27 +92,26 @@ export async function createProduct(product: iProduct, file: File) {
   }
 }
 
-export async function updateProduct(
-  productId: string,
-  productName: string,
-  productPrice: number,
-  productDiscount: number,
-  product: iProduct
-) {
-  // console.log(productId);
-  const productUpdated = await api.put(`/product/update/${productId}`, {
-    name: productName,
-    price: productPrice,
-    discount: productDiscount,
+export async function updateProduct(product: iProduct) {
+  const store = await getStore();
+  const storeId = store.id;
+
+  const productUpdated = await api.put(`/product/update/${product.id}`, {
+    name: product.name,
+    price: product.price,
+    discount: product.discount,
     productCategoryId: product.productCategory.id,
+    optionGroups: product.optionGroups,
+    storeId // Ensure store ownership context if needed by backend, though backend usually checks via token/id
   });
+
   if (!productUpdated) {
     return false;
   }
   return productUpdated;
 }
 
-export async function updateImageProduct(newFile:File, productId: string) {
+export async function updateImageProduct(newFile: File, productId: string) {
   try {
     const formData = new FormData();
     formData.append('file', newFile);
@@ -105,7 +120,7 @@ export async function updateImageProduct(newFile:File, productId: string) {
         "Content-Type": "multipart/form-data",
       },
     });
-  }catch (error) {
+  } catch (error) {
     throw error;
   }
 }

@@ -3,7 +3,7 @@ import { parseCookies, setCookie, destroyCookie } from "nookies";
 
 import jwt from "jsonwebtoken";
 
-const BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080;
+const BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080";
 const api = axios.create({
   baseURL: BASE_URL,
   headers: {
@@ -58,21 +58,21 @@ api.interceptors.request.use(
     const token = getToken();
     const refreshToken = getRefreshToken();
 
-    if(!token) return config; 
+    if (!token) return config;
 
     if (isTokenExpired(token)) {
-      if(isTokenExpired(refreshToken)){
+      if (isTokenExpired(refreshToken)) {
         logout()
-      }else{
+      } else {
         const response = await axios.post(
           `${BASE_URL}/auth/store/refresh-token`,
           { refreshToken }
         );
-  
+
         const { token: newToken, refreshToken: newRefreshToken } = response.data;
         saveToken(newToken);
         saveRefreshToken(newRefreshToken);
-  
+
         config.headers.Authorization = `Bearer ${newToken}`;
         return config;
       }

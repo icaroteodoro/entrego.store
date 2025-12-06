@@ -1,14 +1,11 @@
 import {
-  deleteProduct,
   iProduct,
-  updateProduct,
 } from "@/services/products-service";
-import { Edit, Eraser, X, Check, CheckCircle2, XCircle, CheckCircle, Search } from "lucide-react";
+import { Edit, Eraser } from "lucide-react";
 import { TableBody, TableCell, TableRow } from "./ui/table";
 import { useState } from "react";
-import { Input } from "./ui/input";
-import { toast } from "sonner";
 import ViewProductImage from "./view-product-image";
+import EditProductModal from "./edit-product-modal";
 
 function formatToBRL(value?: number): string {
   if (typeof value !== "number" || isNaN(value)) {
@@ -32,116 +29,56 @@ export default function TableBodyProducts({
   toggleProductIdDeletion,
   refresh
 }: iTableBodyProducts) {
-  const [editMode, setEditMode] = useState(false);
-  const [nameEdit, setNameEdit] = useState("");
-  const [discountEdit, setDiscountEdit] = useState(0);
-  const [priceEdit, setPriceEdit] = useState(0);
-  const [idEdit, setIdEdit] = useState("");
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [productToEdit, setProductToEdit] = useState<iProduct | null>(null);
 
-  const handleEditMode = (productId: string) => {
-    const product = products.find((p) => p.id === productId);
-    if (!product) {
-      return;
-    }
-    setEditMode(!editMode);
-    setNameEdit(product.name);
-    setDiscountEdit(product.discount);
-    setPriceEdit(product.price);
-    setIdEdit(productId);
+  const handleEdit = (product: iProduct) => {
+    setProductToEdit(product);
+    setIsEditModalOpen(true);
   };
 
-  const confirmUpdate = async () => {
-    const product = products.find((p) => p.id === idEdit);
-    if (!product) {
-      return;
-    }
-    if(product.name === nameEdit && product.price === priceEdit && product.discount === discountEdit) {
-      setEditMode(false);
-      return ;
-    }
-    const res = await updateProduct(idEdit, nameEdit, priceEdit, discountEdit, product);
-
-    if (res === false) {
-      setEditMode(false);
-      toast("Erro na atualização do produto!", {
-        icon: <XCircle className="text-red-500"/>,
-        className: 'space-x-3'
-      });
-    }
-    setEditMode(false);
-    refresh();
-    toast("Produto Atualizado com sucesso!", {
-      icon: <CheckCircle className="text-green-500"/>,
-      className: 'space-x-3'
-    });
-  };
-
-  const cancelUpdate = () => {
-    setEditMode(false);
+  const closeEditModal = () => {
+    setIsEditModalOpen(false);
+    setProductToEdit(null);
   };
 
   return (
-    <TableBody>
-      {products.map((product) => (
-        <TableRow key={product.id}>
-          <TableCell>
-            <ViewProductImage refresh={refresh} src={product.urlImage} productId={product.id}/>
-          </TableCell>
-          <TableCell onClick={() => console.log(product)}>{product.id}</TableCell>
-          <TableCell>
-            {editMode && idEdit === product.id ? (
-              <Input
-                className="w-36"
-                onChange={(e) => setNameEdit(e.target.value)}
-                defaultValue={nameEdit}
+    <>
+      <TableBody>
+        {products.map((product) => (
+          <TableRow key={product.id}>
+            <TableCell>
+              <ViewProductImage refresh={refresh} src={product.urlImage} productId={product.id} />
+            </TableCell>
+            <TableCell className="font-mono text-xs text-muted-foreground">{product.id.substring(0, 8)}...</TableCell>
+            <TableCell>
+              {product.name}
+            </TableCell>
+            <TableCell>
+              {formatToBRL(product.price)}
+            </TableCell>
+            <TableCell>
+              {product.discount ? `${product.discount}%` : '-'}
+            </TableCell>
+            <TableCell className="hover:cursor-pointer">
+              <Edit onClick={() => handleEdit(product)} className="text-blue-500 hover:text-blue-700 w-5 h-5" />
+            </TableCell>
+            <TableCell className="hover:cursor-pointer">
+              <Eraser
+                className="text-red-500 hover:text-red-700 w-5 h-5"
+                onClick={() => toggleProductIdDeletion(product.id)}
               />
-            ) : (
-              product.name
-            )}
-          </TableCell>
-          <TableCell>
-            {editMode && idEdit === product.id ? (
-              <Input
-                className="w-24"
-                onChange={(e) => setPriceEdit(parseFloat(e.target.value))}
-                defaultValue={!isNaN(priceEdit) ? priceEdit.toString() : ""}
-              />
-            ) : (
-              formatToBRL(product.price)
-            )}
-          </TableCell>
-          <TableCell>
-            {editMode && idEdit === product.id ? (
-              <Input
-                className="w-36"
-                onChange={(e) => setDiscountEdit(parseInt(e.target.value))}
-                defaultValue={!isNaN(discountEdit) ? discountEdit.toString() : ""}
-              />
-            ) : (
-              product.discount + '%'
-            )}
-          </TableCell>
-          <TableCell className="hover:cursor-pointer">
-            {editMode && idEdit === product.id ? (
-              <div className="flex gap-4">
-                <Check
-                  className="text-green-500"
-                  onClick={() => confirmUpdate()}
-                />{" "}
-                <X className="text-red-500" onClick={() => cancelUpdate()} />
-              </div>
-            ) : (
-              <Edit onClick={() => handleEditMode(product.id)} />
-            )}
-          </TableCell>
-          <TableCell className="hover:cursor-pointer">
-            <Eraser
-              className="text-red-500"
-              onClick={() => toggleProductIdDeletion(product.id)}
-            />
-          </TableCell>
-        </TableRow>
-      ))}
-    </TableBody>
+            </TableCell>
+          </TableRow>
+        ))}
+      </TableBody>
+
+      <EditProductModal
+        isOpen={isEditModalOpen}
+        onClose={closeEditModal}
+        product={productToEdit}
+        onProductUpdated={refresh}
+      />
+    </>
   );
 }

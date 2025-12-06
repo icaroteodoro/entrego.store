@@ -1,6 +1,6 @@
 "use client";
 
-import { AlertCircle, ChevronsUpDown, LogOutIcon } from "lucide-react";
+import { AlertCircle, ChevronsUpDown, LogOutIcon, UserIcon } from "lucide-react";
 import Logo from "../assets/svg/logo.svg";
 
 import {
@@ -68,8 +68,8 @@ export function HeaderSidebar() {
     const containAddress = await verifyAddressStore();
     const containImages = await verifyImagesStore();
 
-    if(status === 'OPEN' || status === 'CLOSING') {
-      if(containAddress) {
+    if (status === 'OPEN' || status === 'CLOSING') {
+      if (containAddress) {
         await updateStatus(status);
         return;
       }
@@ -81,7 +81,7 @@ export function HeaderSidebar() {
       return;
     }
 
-    if(!containImages) {
+    if (!containImages) {
       setMessageError('Você precisa cadastrar todas as imagens da loja para poder abrir!');
       setShowAlertAddress(true);
       setTimeout(() => {
@@ -139,7 +139,13 @@ export function HeaderSidebar() {
                 className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground focus-visible:shadow-none"
               >
                 <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-white text-sidebar-primary-foreground">
-                  <Image alt="Logotipo" src={store.urlProfileImage} width={400} height={400} className="w-full rounded-lg" />
+                  {
+                    store.urlProfileImage ? (
+                      <Image alt="Logotipo" src={store.urlProfileImage} width={400} height={400} className="w-full rounded-lg" />
+                    ) : (
+                      <UserIcon color="#333" className="h-8 w-8" />
+                    )
+                  }
                 </div>
                 <div className="grid flex-1 text-left text-sm leading-tight">
                   <span className="truncate font-semibold">{store.name}</span>
