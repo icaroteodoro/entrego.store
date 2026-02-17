@@ -47,7 +47,7 @@ export async function createStore(data: iCreateStore) {
 
     saveToken(response.data.token);
     saveRefreshToken("refreshToken", response.data.refresh_token);
-    window.location.href= "/home";
+    window.location.href = "/home";
   } catch (error: any) {
     throw error;
   }
@@ -55,7 +55,7 @@ export async function createStore(data: iCreateStore) {
 
 export async function loginStore(email: string, password: string) {
   try {
-    const response = await api.post("/auth/store/login", {
+    const response = await api.post("/auth/login", {
       email,
       password,
     });
@@ -74,6 +74,7 @@ export async function getStore(): Promise<iStore> {
   const store = await api.get(`/store/${email}`);
 
   return store.data;
+
 }
 
 export async function changeStoreStatus(newStatus: any) {
@@ -133,12 +134,12 @@ export async function updateStoreAddress(editValues: iAddress) {
 }
 
 export async function updateStoreProfileImage(file: File) {
-  try{
+  try {
     const storeEmail = getEmailByToken();
     const formData = new FormData();
-  
+
     formData.append("file", file);
-  
+
     const newUrlProfileImage = await api.put(
       `/store/update-profile/${storeEmail}`,
       formData,
@@ -150,17 +151,17 @@ export async function updateStoreProfileImage(file: File) {
     );
 
     return newUrlProfileImage;
-  }catch(error) {
+  } catch (error) {
     throw error;
   }
 }
 export async function updateStoreCoverImage(file: File) {
-  try{
+  try {
     const storeEmail = getEmailByToken();
     const formData = new FormData();
-  
+
     formData.append("file", file);
-  
+
     const newUrlCoverImage = await api.put(
       `/store/update-cover/${storeEmail}`,
       formData,
@@ -172,7 +173,7 @@ export async function updateStoreCoverImage(file: File) {
     );
 
     return newUrlCoverImage;
-  }catch(error) {
+  } catch (error) {
     throw error;
   }
 }
@@ -180,9 +181,9 @@ export async function updateStoreCoverImage(file: File) {
 
 
 export async function verifyAddressStore() {
-  const address:iAddress = await getStoreAddress();
+  const address: iAddress = await getStoreAddress();
 
-  if(!address || !address.city || !address.country || !address.street || !address.cep || !address.neighborhood) {
+  if (!address || !address.city || !address.country || !address.street || !address.cep || !address.neighborhood) {
     return false
   }
 
@@ -192,7 +193,7 @@ export async function verifyAddressStore() {
 export async function verifyImagesStore() {
   const store = await getStore();
 
-  if(!store.urlCoverImage || !store.urlProfileImage){
+  if (!store.urlCoverImage || !store.urlProfileImage) {
     return false;
   }
 

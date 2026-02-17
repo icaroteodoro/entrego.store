@@ -7,6 +7,8 @@ import { useEffect, useState } from "react";
 import { PencilIcon, XIcon, CheckIcon, LockIcon, AlertCircle } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { useSidebar } from "@/components/ui/sidebar";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { maskCep } from "@/lib/utils";
 
 
 export default function Endereco() {
@@ -55,7 +57,11 @@ export default function Endereco() {
   }
 
   const handleChange = (field: keyof iAddress, value: string) => {
-    setEditValues({ ...editValues, [field]: value });
+    let newValue = value;
+    if (field === 'cep') {
+      newValue = maskCep(value);
+    }
+    setEditValues({ ...editValues, [field]: newValue });
   };
 
   const handleEdit = (field: keyof typeof editMode) => {
@@ -68,7 +74,7 @@ export default function Endereco() {
 
   const handleSave = async () => {
     try {
-      const response = await updateStoreAddress(editValues);
+      const response = await updateStoreAddress({ ...editValues, country: 'Brasil' });
       if (response) {
         setAddress(editValues);
         setEditMode({
@@ -149,6 +155,7 @@ export default function Endereco() {
                   <Input
                     value={editValues.cep || ''}
                     onChange={(e) => handleChange('cep', e.target.value)}
+                    maxLength={9}
                   />
                 ) : (
                   <p className="font-medium text-lg">{address.cep}</p>
@@ -246,12 +253,20 @@ export default function Endereco() {
               <div className="flex-1">
                 <p className="text-sm text-primary mb-1">Cidade</p>
                 {editMode.city || address.city === null ? (
-                  <Input
+                  <Select
                     value={editValues.city || ''}
-                    onChange={(e) => handleChange('city', e.target.value)}
-                  />
+                    onValueChange={(value) => handleChange('city', value)}
+                  >
+                    <SelectTrigger className="w-full">
+                      <SelectValue placeholder="Selecione uma cidade" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="Maribondo">Maribondo</SelectItem>
+                      <SelectItem value="Anadia">Anadia</SelectItem>
+                    </SelectContent>
+                  </Select>
                 ) : (
-                <p className="font-medium">{address.city}</p>
+                  <p className="font-medium">{address.city}</p>
                 )}
               </div>
               {!editMode.city && (
@@ -270,25 +285,8 @@ export default function Endereco() {
             <div className="flex items-center justify-between border-b pb-4">
               <div className="flex-1">
                 <p className="text-sm text-primary mb-1">País</p>
-                {editMode.country || address.country === null ? (
-                  <Input
-                    value={editValues.country || ''}
-                    onChange={(e) => handleChange('country', e.target.value)}
-                  />
-                ) : (
-                  <p className="font-medium">{address.country}</p>
-                )}
+                <p className="font-medium">Brasil</p>
               </div>
-              {!editMode.country && (
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => handleEdit('country')}
-                  className="text-zinc-600 hover:text-zinc-800 hover:bg-zinc-50 hover:cursor-pointer"
-                >
-                  <PencilIcon size={16} />
-                </Button>
-              )}
             </div>
 
             {/* Complemento */}

@@ -59,8 +59,17 @@ export default function AddNewProductModal({ onProductAdded }: AddNewProductModa
     name: false,
     valor: false,
     category: false,
+    minPrice: false,
   });
+  const [minPrice, setMinPrice] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
+
+  const handleMinPriceChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const inputValor = e.target.value;
+    const numerico = inputValor.replace(/\D/g, "");
+    setMinPrice(numerico ? formatarMoeda(numerico) : "");
+    if (numerico) setErrors((prev) => ({ ...prev, minPrice: false }));
+  };
 
   useEffect(() => {
     if (isOpen) {
@@ -130,10 +139,14 @@ export default function AddNewProductModal({ onProductAdded }: AddNewProductModa
   };
 
   const validateForm = () => {
+    const priceValue = parseFloat(valor.replace(/\D/g, "")) / 100;
+    const minPriceValue = minPrice ? parseFloat(minPrice.replace(/\D/g, "")) / 100 : 0;
+
     const newErrors = {
       name: !name.trim(),
       valor: !valor.trim(),
       category: !productCategory,
+      minPrice: minPriceValue > priceValue
     };
 
     setErrors(newErrors);
@@ -143,22 +156,24 @@ export default function AddNewProductModal({ onProductAdded }: AddNewProductModa
   const resetForm = () => {
     setName("");
     setValor("");
+    setMinPrice("");
     setProductCategory(undefined);
     setDesconto("");
     setFile(null);
     setOptionGroups([]);
-    setErrors({ name: false, valor: false, category: false });
+    setErrors({ name: false, valor: false, category: false, minPrice: false });
     setSuccessMessage("");
   };
 
   const salvarProduto = async () => {
-    if (!validateForm()) return;
+    if (!validateForm()) {
+      if (errors.minPrice) { // Although validateForm triggers state update, we can't rely on it immediately here if we wanted to toast. But state update will show red border.
+        // toast.error? No need, we use red border.
+      }
+      return;
+    }
 
     setIsLoading(true);
-
-
-
-
 
     try {
       const valorNumerico = parseFloat(valor.replace(/\D/g, "")) / 100;
@@ -167,6 +182,7 @@ export default function AddNewProductModal({ onProductAdded }: AddNewProductModa
       const produto: any = {
         name,
         price: valorNumerico,
+        minPrice: minPrice ? parseFloat(minPrice.replace(/\D/g, "")) / 100 : undefined,
         productCategory: productCategory!,
         discount: isNaN(descontoNumerico) ? 0 : descontoNumerico,
         optionGroups: optionGroups,
@@ -295,6 +311,26 @@ export default function AddNewProductModal({ onProductAdded }: AddNewProductModa
                 {errors.valor && (
                   <p className="text-red-500 text-xs mt-1">Valor é obrigatório</p>
                 )}
+              </div>
+            </div>
+
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="minPrice" className="text-right">
+                Preço Mínimo
+              </Label>
+              <div className="col-span-3">
+                <Input
+                  id="minPrice"
+                  value={minPrice}
+                  onChange={handleMinPriceChange}
+                  placeholder="R$ 0,00"
+                  className={errors.minPrice ? "border-red-500" : ""}
+                  disabled={isLoading}
+                />
+                {errors.minPrice && (
+                  <p className="text-red-500 text-xs mt-1">Preço mínimo não pode ser maior que o valor do produto</p>
+                )}
+                <p className="text-[10px] text-gray-400 mt-1">Opcional. Se preenchido, o valor final do pedido nunca será menor que o Preço Mínimo.</p>
               </div>
             </div>
 

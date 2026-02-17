@@ -13,8 +13,8 @@ export default function InternLayout({
         <AppSidebar />
         <main className="w-full">
           <InternHeader />
-          <section className="p-3">{children}</section>
-          <Toaster/>
+          <section className="flex-1 overflow-auto">{children}</section>
+          <Toaster />
         </main>
       </SidebarProvider>
     </StoreProvider>

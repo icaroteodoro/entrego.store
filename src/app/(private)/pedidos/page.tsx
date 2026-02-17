@@ -19,11 +19,13 @@ import {
   MapPin,
   MapPinned,
   User,
+  XIcon,
 } from "lucide-react";
 import { useEffect, useState, useMemo } from "react";
 import { useSidebar } from "@/components/ui/sidebar";
 import { DateRange } from "react-day-picker";
-import { addDays, format, isAfter, isBefore, isEqual, startOfDay } from "date-fns";
+import { addDays, format, isAfter, isBefore, isEqual, startOfDay, parseISO } from "date-fns";
+import { ptBR } from "date-fns/locale";
 import {
   Popover,
   PopoverContent,
@@ -37,11 +39,33 @@ const paymentMethodMap = {
   CREDITO: "Crédito",
   DEBITO: "Débito",
   PIX: "Pix",
+  DINHEIRO: "Dinheiro",
 };
+
+const statusMap = {
+  MADE: { label: "Novo", color: "bg-blue-100 text-blue-700 border-blue-200" },
+  ACCEPTED: {
+    label: "Aceito",
+    color: "bg-yellow-100 text-yellow-700 border-yellow-200",
+  },
+  SENT: {
+    label: "Enviado",
+    color: "bg-orange-100 text-orange-700 border-orange-200",
+  },
+  FINISHED: {
+    label: "Finalizado",
+    color: "bg-green-100 text-green-700 border-green-200",
+  },
+  CANCELED: {
+    label: "Cancelado",
+    color: "bg-red-100 text-red-700 border-red-200",
+  },
+};
+
 
 const groupOrdersByDay = (pedidos: iOrder[]): Record<string, iOrder[]> => {
   const grouped = pedidos.reduce((acc: Record<string, iOrder[]>, pedido) => {
-    const data = new Date(pedido.deliveryTime).toLocaleDateString("pt-BR");
+    const data = format(new Date(pedido.deliveryTime), "yyyy-MM-dd");
     if (!acc[data]) {
       acc[data] = [];
     }
@@ -53,11 +77,7 @@ const groupOrdersByDay = (pedidos: iOrder[]): Record<string, iOrder[]> => {
     .sort((a, b) => {
       const [dayA] = a;
       const [dayB] = b;
-
-      const dateA = new Date(dayA.split("/").reverse().join("-"));
-      const dateB = new Date(dayB.split("/").reverse().join("-"));
-
-      return dateB.getTime() - dateA.getTime();
+      return dayB.localeCompare(dayA);
     });
 
   return Object.fromEntries(sorted);
@@ -88,10 +108,10 @@ export default function Pedidos() {
       const orderDate = startOfDay(new Date(order.deliveryTime));
       const fromDate = date.from ? startOfDay(date.from) : null;
       const toDate = date.to ? startOfDay(date.to) : fromDate;
-      
+
       if (fromDate && toDate) {
         return (
-          (isAfter(orderDate, fromDate) || isEqual(orderDate, fromDate)) && 
+          (isAfter(orderDate, fromDate) || isEqual(orderDate, fromDate)) &&
           (isBefore(orderDate, toDate) || isEqual(orderDate, toDate))
         );
       }
@@ -134,219 +154,276 @@ export default function Pedidos() {
   }
 
   return (
-    <section className="flex items-center justify-center">
-      <div className="container">
-        <h2 className="text-3xl font-semibold mb-5">Todos os pedidos</h2>
-        <Card className="w-full flex flex-row rounded-sm py-0 gap-0 h-[80vh]">
-          <ScrollArea className="w-2/6 h-full px-3 py-4 border-r">
-          <div className="flex justify-between mb-2">
-            <Popover>
-              <PopoverTrigger asChild>
-                <Button 
-                  id="date"
-                  variant={"outline"}
-                  className={cn(
-                    "w-[73%] justify-start text-left font-normal",
-                    !date && "text-muted-foreground"
-                  )}
-                >
-                  <CalendarIcon />
-                  {date?.from ? (
-                    date.to ? (
-                      <>
-                        {format(date.from, "LLL dd, y")} -{" "}
-                        {format(date.to, "LLL dd, y")}
-                      </>
-                    ) : (
-                      format(date.from, "LLL dd, y")
-                    )
-                  ) : (
-                    <span>Selecione uma data</span>
-                  )}
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-auto p-0" align="start">
-                <Calendar
-                  mode="range"
-                  defaultMonth={date?.from}
-                  selected={date}
-                  onSelect={setDate}
-                  numberOfMonths={2}
-                />
-              </PopoverContent>
-            </Popover>
-            <Button onClick={() => resetDateFilter()} className="w-[25%] hover:cursor-pointer">Zerar</Button>
-
-          </div>
-            {Object.entries(ordersPerDay).length > 0 ? (
-              Object.entries(ordersPerDay).map(([data, ordersOfDay]) => (
-                <Accordion
-                  type="single"
-                  className="w-full py-2 gap-0"
-                  defaultValue={data}
-                  key={data}
-                >
-                  <AccordionItem
-                    value={data}
-                    data-state="open"
-                    className="bg-zinc-100 rounded-2xl px-3 py-2 border-none mb-1"
-                  >
-                    <AccordionTrigger>{data}</AccordionTrigger>
-                    <AccordionContent>
-                      {ordersOfDay.map((order) => (
-                        <CardOrderDefault
-                          onClick={() => setOrderView(order)}
-                          numberOrder={"#" + order.numberOrder}
-                          clientName={order.clientName}
-                          deliveryTime={getDeliveryTime(order.deliveryTime)}
-                          key={order.numberOrder}
-                        />
-                      ))}
-                    </AccordionContent>
-                  </AccordionItem>
-                </Accordion>
-              ))
-            ) : (
-              <div className="p-4 text-center text-gray-500">
-                Nenhum pedido encontrado para este período
+    <section className="flex flex-col items-center justify-start min-h-[calc(100vh-4rem)] bg-zinc-50/30 py-8">
+      <div className="container w-full max-w-7xl px-4 sm:px-6 lg:px-8">
+        <h2 className="text-3xl font-bold tracking-tight mb-6">Todos os pedidos</h2>
+        <Card className="w-full flex flex-col lg:flex-row rounded-xl shadow-sm border overflow-hidden bg-white h-[calc(100vh-12rem)] min-h-[600px]">
+          {/* SIDEBAR LIST */}
+          <div className="w-full lg:w-1/3 h-full border-r bg-zinc-50/50 flex flex-col">
+            <div className="p-4 border-b bg-white">
+              <div className="flex justify-between gap-2">
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button
+                      id="date"
+                      variant={"outline"}
+                      className={cn(
+                        "w-full justify-start text-left font-normal bg-white",
+                        !date && "text-muted-foreground"
+                      )}
+                    >
+                      <CalendarIcon className="mr-2 h-4 w-4" />
+                      {date?.from ? (
+                        date.to ? (
+                          <>
+                            {format(date.from, "dd/MM/yyyy")} -{" "}
+                            {format(date.to, "dd/MM/yyyy")}
+                          </>
+                        ) : (
+                          format(date.from, "dd/MM/yyyy")
+                        )
+                      ) : (
+                        <span>Filtrar por data</span>
+                      )}
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0" align="start">
+                    <Calendar
+                      mode="range"
+                      defaultMonth={date?.from}
+                      selected={date}
+                      onSelect={setDate}
+                      numberOfMonths={2}
+                    />
+                  </PopoverContent>
+                </Popover>
+                {date?.from && (
+                  <Button onClick={() => resetDateFilter()} variant="ghost" size="icon" className="shrink-0 text-muted-foreground hover:text-destructive">
+                    <XIcon className="h-4 w-4" />
+                  </Button>
+                )}
               </div>
-            )}
-          </ScrollArea>
+            </div>
+
+            <ScrollArea className="flex-1">
+              <div className="p-3 space-y-3">
+                {Object.entries(ordersPerDay).length > 0 ? (
+                  Object.entries(ordersPerDay).map(([data, ordersOfDay]) => (
+                    <Accordion
+                      type="single"
+                      collapsible
+                      className="w-full"
+                      defaultValue={data}
+                      key={data}
+                    >
+                      <AccordionItem
+                        value={data}
+                        className="border-none mb-2"
+                      >
+                        <AccordionTrigger className="hover:no-underline py-2 px-3 bg-white border rounded-lg mb-2 shadow-sm data-[state=open]:rounded-b-none data-[state=open]:mb-0 data-[state=open]:border-b-0">
+                          <span className="font-medium text-sm text-zinc-700">
+                            {format(parseISO(data), "d 'de' MMMM 'de' yyyy", { locale: ptBR }).replace(
+                              /de (\w)/,
+                              (match, p1) => `de ${p1.charAt(0).toUpperCase() + p1.slice(1)}`
+                            )}
+                          </span>
+                        </AccordionTrigger>
+                        <AccordionContent className="p-0 bg-zinc-50/50 border-x border-b rounded-b-lg">
+                          <div className="p-2 space-y-2">
+                            {ordersOfDay.map((order) => (
+                              <div key={order.numberOrder} onClick={() => setOrderView(order)}>
+                                <CardOrderDefault
+                                  numberOrder={"#" + order.numberOrder}
+                                  clientName={order.clientName}
+                                  deliveryTime={getDeliveryTime(order.deliveryTime)}
+                                  isSelected={orderView?.numberOrder === order.numberOrder}
+                                />
+                              </div>
+                            ))}
+                          </div>
+                        </AccordionContent>
+                      </AccordionItem>
+                    </Accordion>
+                  ))
+                ) : (
+                  <div className="flex flex-col items-center justify-center py-12 text-center text-muted-foreground">
+                    <div className="bg-zinc-100 p-4 rounded-full mb-3">
+                      <FileText className="h-8 w-8 text-zinc-300" />
+                    </div>
+                    <p className="font-medium">Nenhum pedido encontrado</p>
+                    <p className="text-sm">Tente ajustar os filtros de data.</p>
+                  </div>
+                )}
+              </div>
+            </ScrollArea>
+          </div>
+
+          {/* DETAIL VIEW */}
           {isLoading ? (
-            <div className="w-full flex justify-center items-center">
-              <div className="w-8 h-8 border-4 border-gray-300 border-t-primary rounded-full animate-spin"></div>
+            <div className="w-full lg:w-2/3 flex justify-center items-center bg-zinc-50/30">
+              <div className="flex flex-col items-center gap-3">
+                <div className="w-10 h-10 border-4 border-primary/30 border-t-primary rounded-full animate-spin"></div>
+                <p className="text-muted-foreground text-sm animate-pulse">Carregando pedidos...</p>
+              </div>
             </div>
           ) : orderView ? (
-            <div className="w-4/6 relative">
+            <div className="w-full lg:w-2/3 relative flex flex-col h-full bg-white">
               {/* HEADER */}
-              <div className="absolute bg-white top-0 left-0 h-16 w-full border-b flex items-center justify-between px-4 gap-5">
-                <h2 className="text-xl font-semibold">
-                  Número do pedido:{" "}
-                  <span className="text-primary">#{orderView.numberOrder}</span>
-                </h2>
+              <div className="h-16 w-full border-b flex items-center justify-between px-6 bg-white shrink-0">
+                <div className="flex items-center gap-3">
+                  <div className="bg-primary/10 text-primary p-2 rounded-lg">
+                    <Hash className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <p className="text-xs text-muted-foreground uppercase tracking-wider font-semibold">Pedido</p>
+                    <h2 className="text-xl font-bold text-zinc-900">
+                      #{orderView.numberOrder}
+                    </h2>
+                  </div>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span
+                    className={cn(
+                      "px-3 py-1 rounded-full text-xs font-semibold border",
+                      statusMap[orderView.status as keyof typeof statusMap]?.color ||
+                      "bg-zinc-100 text-zinc-700 border-zinc-200"
+                    )}
+                  >
+                    {statusMap[orderView.status as keyof typeof statusMap]?.label ||
+                      orderView.status}
+                  </span>
+                </div>
               </div>
-              {/* HEADER */}
-              <div className="flex pt-16 w-full h-full">
-                <ScrollArea className="w-2/4 h-full border-l border-r p-5">
-                  <div className="space-y-4">
-                    <div className="flex items-center gap-2 bg-zinc-50 p-3 rounded-lg">
-                      <User className="w-5 h-5 text-primary" />
-                      <div>
-                        <p className="text-sm text-zinc-500">Nome do Cliente</p>
-                        <p className="font-medium">{orderView.clientName}</p>
-                      </div>
-                    </div>
 
-                    <div className="bg-zinc-50 p-3 rounded-lg space-y-3">
-                      <div className="flex items-center gap-2 text-primary">
-                        <MapPin className="w-5 h-5" />
-                        <p className="font-medium">Endereço de Entrega</p>
-                      </div>
+              {/* CONTENT */}
+              <div className="flex flex-col lg:flex-row h-full overflow-hidden">
+                {/* INFO COLUMN */}
+                <ScrollArea className="w-full lg:w-1/2 h-full border-b lg:border-b-0 lg:border-r bg-zinc-50/30">
+                  <div className="p-6 space-y-6">
 
-                      <div className="space-y-3 pl-7">
-                        <div className="flex items-center gap-2">
-                          <Building2 className="w-4 h-4 text-zinc-400" />
-                          <div>
-                            <p className="text-sm text-zinc-500">Cidade</p>
-                            <p className="font-medium">
-                              {orderView.address.city}
-                            </p>
+                    {/* CLIENT INFO */}
+                    <div className="space-y-3">
+                      <h3 className="text-sm font-semibold text-zinc-500 uppercase tracking-wider flex items-center gap-2">
+                        <User className="w-4 h-4" /> Cliente
+                      </h3>
+                      <div className="bg-white p-4 rounded-xl border shadow-sm">
+                        <div className="flex items-center gap-3 mb-2">
+                          <div className="w-10 h-10 bg-zinc-100 rounded-full flex items-center justify-center text-zinc-500">
+                            <User className="w-5 h-5" />
                           </div>
-                        </div>
-
-                        <div className="flex items-center gap-2">
-                          <MapPinned className="w-4 h-4 text-zinc-400" />
                           <div>
-                            <p className="text-sm text-zinc-500">Bairro</p>
-                            <p className="font-medium">
-                              {orderView.address.neighborhood}
-                            </p>
-                          </div>
-                        </div>
-
-                        <div className="flex items-center gap-2">
-                          <HomeIcon className="w-4 h-4 text-zinc-400" />
-                          <div>
-                            <p className="text-sm text-zinc-500">Logradouro</p>
-                            <p className="font-medium">
-                              {orderView.address.street}
-                            </p>
-                          </div>
-                        </div>
-
-                        <div className="flex items-center gap-2">
-                          <Hash className="w-4 h-4 text-zinc-400" />
-                          <div>
-                            <p className="text-sm text-zinc-500">Número</p>
-                            <p className="font-medium">
-                              {orderView.address.number}
-                            </p>
-                          </div>
-                        </div>
-
-                        <div className="flex items-center gap-2">
-                          <FileText className="w-4 h-4 text-zinc-400" />
-                          <div>
-                            <p className="text-sm text-zinc-500">Complemento</p>
-                            <p className="font-medium">
-                              {orderView.address.complement || "-"}
-                            </p>
+                            <p className="font-semibold text-zinc-800">{orderView.clientName}</p>
+                            <p className="text-xs text-zinc-500">Cliente frequente</p>
                           </div>
                         </div>
                       </div>
                     </div>
 
-                    <div className="flex items-center gap-2 bg-zinc-50 p-3 rounded-lg">
-                      <CreditCard className="w-5 h-5 text-primary" />
-                      <div>
-                        <p className="text-sm text-zinc-500">
-                          Forma de pagamento
-                        </p>
-                        <p className="font-medium">
-                          {getPaymentMethodDisplayName(orderView.paymentMethod)}
-                        </p>
+                    {/* ADDRESS INFO */}
+                    <div className="space-y-3">
+                      <h3 className="text-sm font-semibold text-zinc-500 uppercase tracking-wider flex items-center gap-2">
+                        <MapPin className="w-4 h-4" /> Endereço de Entrega
+                      </h3>
+                      <div className="bg-white p-4 rounded-xl border shadow-sm space-y-4">
+                        <div className="flex items-start gap-3">
+                          <MapPinned className="w-5 h-5 text-primary mt-0.5" />
+                          <div>
+                            <p className="font-medium text-zinc-800">
+                              {orderView.address.street}, {orderView.address.number}
+                            </p>
+                            <p className="text-sm text-zinc-500">
+                              {orderView.address.neighborhood}, {orderView.address.city}
+                            </p>
+                            {orderView.address.complement && (
+                              <p className="text-xs text-zinc-400 mt-1 bg-zinc-50 p-2 rounded border inline-block">
+                                Obs: {orderView.address.complement}
+                              </p>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* PAYMENT INFO */}
+                    <div className="space-y-3">
+                      <h3 className="text-sm font-semibold text-zinc-500 uppercase tracking-wider flex items-center gap-2">
+                        <CreditCard className="w-4 h-4" /> Pagamento
+                      </h3>
+                      <div className="bg-white p-4 rounded-xl border shadow-sm flex items-center gap-3">
+                        <div className="bg-green-50 p-2 rounded-lg text-green-600">
+                          <CreditCard className="w-5 h-5" />
+                        </div>
+                        <div>
+                          <p className="font-medium text-zinc-800">
+                            {getPaymentMethodDisplayName(orderView.paymentMethod)}
+                          </p>
+                          <p className="text-xs text-zinc-500">Pagamento na entrega</p>
+                        </div>
                       </div>
                     </div>
                   </div>
                 </ScrollArea>
-                {/* LISTA DE ITENS */}
-                <ScrollArea className="w-2/4 h-full border-l border-r">
-                  {orderView.items.map((item, index) => (
-                    <div
-                      className="w-full py-3 border-b flex items-center justify-between px-2"
-                      key={index}
-                    >
-                      <div className="flex items-center gap-2">
-                        <Card className="p-2 w-9 h-9 rounded-sm flex items-center justify-center">
-                          {item.quantity}
-                        </Card>
-                        {item.name}
-                      </div>
-                      <div>{formatToBRL(item.price)}</div>
+
+                {/* ITEMS COLUMN */}
+                <div className="w-full lg:w-1/2 h-full flex flex-col bg-white">
+                  <div className="p-4 border-b bg-white flex items-center justify-between">
+                    <h3 className="text-sm font-semibold text-zinc-500 uppercase tracking-wider flex items-center gap-2">
+                      Itens do Pedido
+                    </h3>
+                    <span className="text-xs bg-zinc-100 text-zinc-600 px-2 py-1 rounded-full font-medium">
+                      {orderView.items.length} itens
+                    </span>
+                  </div>
+                  <ScrollArea className="flex-1 p-0">
+                    <div className="divide-y">
+                      {orderView.items.map((item, index) => (
+                        <div className="p-4 hover:bg-zinc-50/50 transition-colors flex items-center justify-between group" key={index}>
+                          <div className="flex items-center gap-3">
+                            <div className="w-8 h-8 rounded-lg bg-zinc-100 border flex items-center justify-center font-bold text-sm text-zinc-700 shadow-sm group-hover:bg-white group-hover:border-primary/50 group-hover:text-primary transition-all">
+                              {item.quantity}x
+                            </div>
+                            <span className="font-medium text-zinc-700">{item.name}</span>
+                          </div>
+                          <span className="font-semibold text-zinc-900">{formatToBRL(item.price)}</span>
+                        </div>
+                      ))}
                     </div>
-                  ))}
-                </ScrollArea>
-                {/* LISTA DE ITENS */}
-              </div>
-              {/* FOOTER */}
-              <div className="absolute bg-white bottom-0 left-0 h-16 w-full border-t flex items-center justify-end px-4">
-                <div>
-                  <h2 className="font-semibold">
-                    Total: {formatToBRL(orderView.total)}
-                  </h2>
+                  </ScrollArea>
+
+                  {/* TOTAL FOOTER */}
+                  <div className="p-6 bg-zinc-50 border-t mt-auto">
+                    <div className="space-y-2 mb-4">
+                      <div className="flex justify-between text-sm text-zinc-500">
+                        <span>Subtotal</span>
+                        <span>{formatToBRL(orderView.total)}</span>
+                      </div>
+                      <div className="flex justify-between text-sm text-zinc-500">
+                        <span>Taxa de entrega</span>
+                        <span>Grátis</span>
+                      </div>
+                    </div>
+                    <div className="flex justify-between items-end pt-4 border-t border-zinc-200">
+                      <div>
+                        <p className="text-sm text-zinc-500">Total a pagar</p>
+                      </div>
+                      <span className="text-2xl font-bold text-zinc-900">{formatToBRL(orderView.total)}</span>
+                    </div>
+                  </div>
                 </div>
               </div>
-              {/* FOOTER */}
-            </div>
-          ) : filteredOrders.length === 0 && isLoading === false ? (
-            <div className="flex justify-center items-center w-full flex-col">
-              <h2 className="text-2xl font-bold text-primary">
-                Sentimos muito,
-              </h2>
-              <h2>mas não há pedidos para o período selecionado</h2>
             </div>
           ) : (
-            <></>
+            <div className="w-full lg:w-2/3 flex flex-col items-center justify-center h-full bg-zinc-50/30 text-center p-8">
+              <div className="bg-white p-6 rounded-full shadow-sm mb-4">
+                <Hash className="w-12 h-12 text-zinc-200" />
+              </div>
+              <h3 className="text-xl font-semibold text-zinc-800 mb-2">
+                Selecione um pedido
+              </h3>
+              <p className="text-muted-foreground max-w-sm">
+                Escolha um pedido da lista ao lado para ver os detalhes completos, endereço e itens.
+              </p>
+            </div>
           )}
         </Card>
       </div>

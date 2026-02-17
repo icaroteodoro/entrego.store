@@ -1,26 +1,27 @@
 import { MiddlewareConfig, NextRequest, NextResponse } from "next/server";
 
 const publicRoutes = [
-    {path: "/login",  whenAuthenticated: 'redirect'},
-    {path: "/cadastro",  whenAuthenticated: 'redirect'},
-    {path: "/",  whenAuthenticated: 'redirect'},
+    { path: "/login", whenAuthenticated: 'redirect' },
+    { path: "/cadastro", whenAuthenticated: 'redirect' },
+    { path: "/", whenAuthenticated: 'redirect' },
 ] as const
 
 const REDIRECT_WHEN_NOT_AUTHENTICADED_ROUTE = '/login'
 
 
 
-export function middleware(request: NextRequest) {
+export function proxy(request: NextRequest) {
     const path = request.nextUrl.pathname
+    console.log(`Middleware request: ${request.method} ${request.url}`);
     const publicRoute = publicRoutes.find(route => route.path === path)
     const authToken = request.cookies.get('token')
 
 
-    if(!authToken && publicRoute){
+    if (!authToken && publicRoute) {
         return NextResponse.next();
     }
 
-    if(!authToken && !publicRoute){
+    if (!authToken && !publicRoute) {
         const redirectUrl = request.nextUrl.clone()
 
         redirectUrl.pathname = REDIRECT_WHEN_NOT_AUTHENTICADED_ROUTE
@@ -28,7 +29,7 @@ export function middleware(request: NextRequest) {
         return NextResponse.redirect(redirectUrl)
     }
 
-    if(authToken && publicRoute && publicRoute.whenAuthenticated === 'redirect'){
+    if (authToken && publicRoute && publicRoute.whenAuthenticated === 'redirect') {
         const redirectUrl = request.nextUrl.clone()
 
         redirectUrl.pathname = '/home'
@@ -37,7 +38,7 @@ export function middleware(request: NextRequest) {
     }
 
 
-    if(authToken && !publicRoute) {
+    if (authToken && !publicRoute) {
         //VERIFICAR SE O JWT TÁ EXPIRADO
         //SE SIM, REMOVE O TOKEN DOS COKIES
         //PODE APLICAR UMA ESTRÁTEGIA DE REFRESH TOKEN 
@@ -58,5 +59,5 @@ export const config: MiddlewareConfig = {
          * - favicon.ico, sitemap.xml, robots.txt (metadata files)
          */
         '/((?!api|_next/static|_next/image|favicon.ico|sitemap.xml|robots.txt).*)',
-      ],
+    ],
 }

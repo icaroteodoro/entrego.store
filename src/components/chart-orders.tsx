@@ -42,7 +42,7 @@ export function ChartOrders(props: iChartOrders) {
         <CardDescription>16/03 - 22/03</CardDescription>
       </CardHeader>
       <CardContent>
-        <ChartContainer config={chartConfig}>
+        <ChartContainer config={chartConfig} className="aspect-auto h-[250px] w-full">
           <BarChart
             accessibilityLayer
             data={props.chartData}

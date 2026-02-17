@@ -27,9 +27,16 @@ export const StoreProvider = ({ children }: { children: ReactNode }) => {
 
   useEffect(() => {
     const fetchStore = async () => {
-      const store: iStore = await getStore();
-      setStore(store);
-      setStoreStatus(store.statusLive)
+      try {
+        const storeData: any = await getStore();
+        if (storeData) {
+          setStore(storeData);
+          const status = storeData.statusLive || storeData.status;
+          setStoreStatus(status);
+        }
+      } catch (error) {
+        console.error("Failed to fetch store:", error);
+      }
     };
     fetchStore();
   }, []);

@@ -1,6 +1,6 @@
 import { parseCookies } from "nookies";
 import api from "@/lib/axios";
-import jwt from "jsonwebtoken";
+import { jwtDecode } from "jwt-decode";
 import { useEffect, useState } from "react";
 import { getToken } from "@/services/token-service";
 
@@ -8,6 +8,8 @@ export interface iItems {
   name: string;
   price: number;
   quantity: number;
+  minPrice?: number | null;
+  options?: { name: string; price: number }[];
 }
 
 export interface iOrder {
@@ -70,9 +72,10 @@ export function useOrders(today: boolean) {
       return;
     }
 
-    const email = jwt.decode(token)?.sub;
-
     try {
+      const decoded: any = jwtDecode(token);
+      const email = decoded?.sub;
+
       if (today) {
         const response = await api.get(`/order/store/today/${email}`);
         return response.data;
@@ -93,7 +96,15 @@ export function useOrders(today: boolean) {
         return false;
       }
 
-      const email = jwt.decode(token)?.sub;
+      let email;
+      try {
+        const decoded: any = jwtDecode(token);
+        email = decoded?.sub;
+      } catch (e) {
+        console.warn('Erro ao decodificar token');
+        return false;
+      }
+
       if (!email) {
         console.warn('Email não disponível no token');
         return false;
@@ -129,6 +140,12 @@ export function useOrders(today: boolean) {
   }
 
   async function updateStatusOrder(status: "MADE" | "ACCEPTED" | "CANCELED" | "SENT" | "FINISHED", orderId: string) {
+    const currentOrder = orders.find(o => o.id === orderId);
+    if (currentOrder?.status === "CANCELED") {
+      console.warn("Cannot update status of a canceled order");
+      return;
+    }
+
     setIsUpdating(true)
     try {
       const response = await api.put('/order/update', {

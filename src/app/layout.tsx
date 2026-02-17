@@ -9,8 +9,8 @@ const poppins = Poppins({
 });
 
 export const metadata: Metadata = {
-  title: "Entregô | Loja | Cadastre sua loja hoje",
-  description: "O aplicativo de delivery para sua loja.",
+  title: "Entregô | Loja | O sistema de delivery para sua loja.",
+  description: "O sistema de delivery para sua loja.",
 };
 
 export default function RootLayout({

@@ -8,6 +8,7 @@ import { useEffect, useState } from "react";
 import { PencilIcon, XIcon, CheckIcon, LockIcon, AlertCircle } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Label } from "@/components/ui/label";
 import { useSidebar } from "@/components/ui/sidebar";
 import HeaderCardStore from "@/components/header-card-store";
 
@@ -39,7 +40,7 @@ export default function Loja() {
   const [editValues, setEditValues] = useState<iStore>({} as iStore);
   const [isEditing, setIsEditing] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const {setPageTitle} = useSidebar();
+  const { setPageTitle } = useSidebar();
 
   useEffect(() => {
     viewStore();
@@ -122,10 +123,10 @@ export default function Loja() {
   }
 
   return (
-    <section className="flex items-center justify-center py-8">
-      <div className="container max-w-3xl">
-        <h2 className="text-3xl font-semibold mb-5">Minha Loja</h2>
-        
+    <section className="flex flex-col items-center justify-start min-h-[calc(100vh-4rem)] bg-zinc-50/30 py-8">
+      <div className="container w-full max-w-5xl px-4 sm:px-6 lg:px-8">
+        <h2 className="text-3xl font-bold tracking-tight mb-6">Minha Loja</h2>
+
         {error && (
           <Alert variant="destructive" className="mb-4">
             <AlertCircle className="h-4 w-4" />
@@ -135,162 +136,142 @@ export default function Loja() {
             </AlertDescription>
           </Alert>
         )}
-        
-        <Card className="w-full rounded-md shadow-md overflow-hidden pt-0">
-          <HeaderCardStore srcCoverImg={store.urlCoverImage} srcProfileImg={store.urlProfileImage}/>
-          <CardHeader className="">
-            <CardTitle className="text-2xl">Detalhes da Loja</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-6 pt-6">
-            {/* Nome */}
-            <div className="flex items-center justify-between border-b pb-4">
-              <div className="flex-1">
-                <p className="text-sm text-primary mb-1">Nome</p>
-                {editMode.name ? (
-                  <Input
-                    value={editValues.name}
-                    onChange={(e) => handleChange('name', e.target.value)}
-                    className=""
-                  />
-                ) : (
-                  <p className="font-medium text-lg">{store.name}</p>
-                )}
-              </div>
-              {!editMode.name && (
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => handleEdit('name')}
-                  className="text-zinc-600 hover:text-zinc-800 hover:bg-zinc-50 hover:cursor-pointer"
-                >
-                  <PencilIcon size={16} />
-                </Button>
-              )}
-            </div>
 
-            {/* Descrição */}
-            <div className="flex items-center justify-between border-b pb-4">
-              <div className="flex-1">
-                <p className="text-sm text-primary mb-1">Descrição</p>
-                {editMode.description ? (
-                  <Textarea
-                    value={editValues.description}
-                    onChange={(e) => handleChange('description', e.target.value)}
-                    className="min-h-24"
-                  />
-                ) : (
-                  <p className="font-medium">{store.description}</p>
-                )}
+        <div className="grid gap-6">
+          <Card className="w-full rounded-xl shadow-sm overflow-hidden border-zinc-200">
+            <HeaderCardStore srcCoverImg={store.urlCoverImage} srcProfileImg={store.urlProfileImage} />
+            <div className="px-6 py-6">
+              <div className="flex items-center justify-between mb-6">
+                <div>
+                  <h3 className="text-2xl font-bold text-zinc-900">{store.name}</h3>
+                  <p className="text-zinc-500">{store.description}</p>
+                </div>
+                <span className="px-3 py-1 bg-primary/10 text-primary rounded-full text-sm font-semibold border border-primary/20">
+                  {getCategoryDisplayName(store.category)}
+                </span>
               </div>
-              {!editMode.description && (
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => handleEdit('description')}
-                  className="text-zinc-600 hover:text-zinc-800 hover:bg-zinc-50 hover:cursor-pointer"
-                >
-                  <PencilIcon size={16} />
-                </Button>
-              )}
-            </div>
 
-            {/* Categoria */}
-            <div className="flex items-center justify-between border-b pb-4">
-              <div className="flex-1">
-                <p className="text-sm text-primary mb-1">Categoria</p>
-                {editMode.category ? (
-                  <Select
-                    defaultValue={editValues.category}
-                    value={editValues.category}
-                    onValueChange={handleCategoryChange}
-                  >
-                    <SelectTrigger className="w-full">
-                      <SelectValue placeholder="Selecione uma categoria" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {Object.entries(categoryMap).map(([value, label]) => (
-                        <SelectItem key={value} value={value}>
-                          {label}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                ) : (
-                  <p className="font-medium">{getCategoryDisplayName(store.category)}</p>
-                )}
-              </div>
-              {!editMode.category && (
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => handleEdit('category')}
-                  className="text-zinc-600 hover:text-zinc-800 hover:bg-zinc-50 hover:cursor-pointer"
-                >
-                  <PencilIcon size={16} />
-                </Button>
-              )}
-            </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
+                <div className="space-y-4">
+                  <div className="p-4 bg-zinc-50 rounded-lg border">
+                    <h4 className="font-semibold text-zinc-700 mb-2 flex items-center gap-2">
+                      <LockIcon size={14} className="text-zinc-400" /> Informações de Registro
+                    </h4>
+                    <div className="space-y-3">
+                      <div>
+                        <p className="text-xs text-zinc-500 uppercase tracking-wider">ID da Loja</p>
+                        <p className="font-mono text-sm text-zinc-800">{store.id}</p>
+                      </div>
+                      <div>
+                        <p className="text-xs text-zinc-500 uppercase tracking-wider">Documento (CPF/CNPJ)</p>
+                        <p className="font-mono text-sm text-zinc-800">{store.document}</p>
+                      </div>
+                      <div>
+                        <p className="text-xs text-zinc-500 uppercase tracking-wider">Email cadastrado</p>
+                        <p className="font-mono text-sm text-zinc-800">{store.email}</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
 
-            {/* ID - Não editável */}
-            <div className="flex items-center justify-between border-b pb-4">
-              <div className="flex-1">
-                <p className="text-sm text-primary mb-1">Id da loja</p>
-                <div className="flex items-center">
-                  <p className="font-medium">{store.id}</p>
-                  <span className="ml-2 text-zinc-400 text-xs flex items-center">
-                    <LockIcon size={12} className="mr-1" /> Não editável
-                  </span>
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <h4 className="font-semibold text-zinc-800">Dados Editáveis</h4>
+                    {!isEditing && (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => {
+                          setEditMode({ name: true, description: true, category: true });
+                          setIsEditing(true);
+                        }}
+                        className="text-zinc-600 hover:text-primary hover:border-primary/50 hover:bg-primary/5 cursor-pointer"
+                      >
+                        <PencilIcon size={14} className="mr-2" /> Editar Dados
+                      </Button>
+                    )}
+                  </div>
+
+                  <div className="space-y-4">
+                    <div className="space-y-1">
+                      <Label className="text-zinc-600">Nome da Loja</Label>
+                      {editMode.name ? (
+                        <Input
+                          value={editValues.name}
+                          onChange={(e) => handleChange('name', e.target.value)}
+                          className="bg-white"
+                        />
+                      ) : (
+                        <div className="p-2 border border-transparent rounded-md text-zinc-800 font-medium">
+                          {store.name}
+                        </div>
+                      )}
+                    </div>
+
+                    <div className="space-y-1">
+                      <Label className="text-zinc-600">Categoria</Label>
+                      {editMode.category ? (
+                        <Select
+                          defaultValue={editValues.category}
+                          value={editValues.category}
+                          onValueChange={handleCategoryChange}
+                        >
+                          <SelectTrigger className="w-full bg-white">
+                            <SelectValue placeholder="Selecione uma categoria" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {Object.entries(categoryMap).map(([value, label]) => (
+                              <SelectItem key={value} value={value}>
+                                {label}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      ) : (
+                        <div className="p-2 border border-transparent rounded-md text-zinc-800 font-medium">
+                          {getCategoryDisplayName(store.category)}
+                        </div>
+                      )}
+                    </div>
+
+                    <div className="space-y-1">
+                      <Label className="text-zinc-600">Descrição</Label>
+                      {editMode.description ? (
+                        <Textarea
+                          value={editValues.description}
+                          onChange={(e) => handleChange('description', e.target.value)}
+                          className="min-h-[100px] bg-white"
+                        />
+                      ) : (
+                        <div className="p-2 border border-transparent rounded-md text-zinc-800 text-sm">
+                          {store.description}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  {isEditing && (
+                    <div className="flex justify-end gap-3 pt-4 border-t">
+                      <Button
+                        variant="outline"
+                        onClick={handleCancel}
+                        className="border-zinc-200 text-zinc-600 hover:bg-zinc-50 cursor-pointer"
+                      >
+                        <XIcon size={16} className="mr-2" /> Cancelar
+                      </Button>
+                      <Button
+                        onClick={handleSave}
+                        className="bg-primary text-primary-foreground hover:bg-primary/90 cursor-pointer"
+                      >
+                        <CheckIcon size={16} className="mr-2" /> Salvar Alterações
+                      </Button>
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
-
-            {/* Email - Não editável */}
-            <div className="flex items-center justify-between border-b pb-4">
-              <div className="flex-1">
-                <p className="text-sm text-primary mb-1">Email</p>
-                <div className="flex items-center">
-                  <p className="font-medium">{store.email}</p>
-                  <span className="ml-2 text-zinc-400 text-xs flex items-center">
-                    <LockIcon size={12} className="mr-1" /> Não editável
-                  </span>
-                </div>
-              </div>
-            </div>
-
-            {/* CPF/CNPJ - Não editável */}
-            <div className="flex items-center justify-between">
-              <div className="flex-1">
-                <p className="text-sm text-primary mb-1">CPF/CNPJ</p>
-                <div className="flex items-center">
-                  <p className="font-medium">{store.document}</p>
-                  <span className="ml-2 text-zinc-400 text-xs flex items-center">
-                    <LockIcon size={12} className="mr-1" /> Não editável
-                  </span>
-                </div>
-              </div>
-            </div>
-          </CardContent>
-
-          {isEditing && (
-            <div className="px-6">
-              <CardFooter className="bg-slate-50 flex justify-end space-x-2 py-4 rounded-lg">
-                <Button
-                  variant="outline"
-                  onClick={handleCancel}
-                  className="border-red-300 text-red-600 hover:bg-red-50 hover:cursor-pointer"
-                >
-                  <XIcon size={16} className="mr-2" /> Cancelar
-                </Button>
-                <Button
-                  onClick={handleSave}
-                  className="bg-green-600 text-white hover:bg-green-700 hover:cursor-pointer"
-                >
-                  <CheckIcon size={16} className="mr-2" /> Salvar Alterações
-                </Button>
-              </CardFooter>
-            </div>
-          )}
-        </Card>
+          </Card>
+        </div>
       </div>
     </section>
   );

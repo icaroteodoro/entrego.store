@@ -1,5 +1,5 @@
 import { parseCookies, setCookie } from "nookies";
-import jwt from "jsonwebtoken";
+import { jwtDecode } from "jwt-decode";
 
 // Função para obter o token
 export function getToken(ctx = null) {
@@ -29,6 +29,10 @@ export function getEmailByToken() {
         return;
     }
 
-    const email = jwt.decode(token)?.sub;
-    return email;
+    try {
+        const decoded: any = jwtDecode(token);
+        return decoded.sub;
+    } catch (error) {
+        return null;
+    }
 }

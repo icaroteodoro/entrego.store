@@ -13,7 +13,7 @@ import {
 } from "./ui/sidebar";
 import Link from "next/link";
 import { Home, MapPin, NotebookText, NotepadText, Settings, Store } from "lucide-react";
-import  {HeaderSidebar}  from "./header-sidebar";
+import { HeaderSidebar } from "./header-sidebar";
 import { useEffect, useState } from "react";
 import { verifyImagesStore, verifyAddressStore } from "@/services/store-service";
 
@@ -65,11 +65,11 @@ export default function AppSidebar() {
 
 
 
-  const verifyImages =  async () =>{
+  const verifyImages = async () => {
     const res = await verifyImagesStore();
     setContainImages(res);
   }
-  const verifyAddress =  async () =>{
+  const verifyAddress = async () => {
     const res = await verifyAddressStore();
     setContainAddres(res);
   }
@@ -77,16 +77,16 @@ export default function AppSidebar() {
   useEffect(() => {
     verifyImages();
     verifyAddress();
-  },[]);
+  }, []);
 
 
-  
+
 
   return (
     <Sidebar collapsible="icon">
       <SidebarHeader className="flex flex-row justify-strart items-center">
         <SidebarContent>
-          <HeaderSidebar/>
+          <HeaderSidebar />
         </SidebarContent>
       </SidebarHeader>
       <SidebarContent>
@@ -95,7 +95,7 @@ export default function AppSidebar() {
             <SidebarMenu>
               {items.map((item) => (
                 <SidebarMenuItem className="flex justify-between items-center" key={item.title}>
-                  <SidebarMenuButton  asChild>
+                  <SidebarMenuButton asChild>
                     <Link href={item.url}>
                       <item.icon />
                       <span>{item.title}</span>

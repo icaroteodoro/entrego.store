@@ -47,9 +47,9 @@ export default function Cardapio() {
   const [deleteProductOpen, setDeleProductOpen] = useState(false);
   const [productIdDeletion, setProductIdDeletion] = useState("");
 
-  const {setPageTitle} = useSidebar();
+  const { setPageTitle } = useSidebar();
 
-  
+
 
   useEffect(() => {
     setPageTitle("Cardápio");
@@ -146,7 +146,7 @@ export default function Cardapio() {
     }
   };
 
-  
+
 
   return (
     <section className="flex items-center justify-center py-8">
@@ -209,19 +209,20 @@ export default function Cardapio() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-      <div className="container max-w-3xl">
-        <div className="flex justify-between mb-5">
-          <h2 className="text-3xl font-semibold">Cardápio</h2>
+      <div className="container w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="flex flex-col sm:flex-row justify-between mb-8 gap-4 sm:gap-0 items-center">
+          <h2 className="text-3xl font-bold tracking-tight">Cardápio</h2>
           <AddNewProductModal onProductAdded={handleRefresh} />
         </div>
-        <Card className="w-full rounded-md shadow-md overflow-hidden">
+        <Card className="w-full rounded-xl shadow-sm border overflow-hidden bg-white">
           {isLoading ? (
-            <div className="p-8 text-center">
-              <div className="animate-pulse">Carregando...</div>
+            <div className="p-12 text-center">
+              <div className="animate-pulse text-muted-foreground">Carregando cardápio...</div>
             </div>
           ) : categories.length === 0 ? (
-            <div className="p-8 text-center text-gray-500">
-              Nenhuma categoria encontrada. Adicione uma nova categoria.
+            <div className="p-12 text-center text-muted-foreground flex flex-col items-center gap-2">
+              <span className="text-lg">Nenhuma categoria encontrada.</span>
+              <span className="text-sm">Adicione uma nova categoria para começar.</span>
             </div>
           ) : (
             <Tabs
@@ -230,23 +231,28 @@ export default function Cardapio() {
               defaultValue={categories[0]?.name.toLowerCase()}
               className="w-full"
             >
-              <TabsList className="w-full rounded-none bg-transparent">
-                {categories.map((category) => (
-                  <TabsTrigger
-                    className="hover:cursor-pointer relative group"
-                    key={category.id}
-                    value={category.name.toLowerCase()}
-                  >
-                    {category.name}
-                    <div
-                      onClick={() => toggleDeletionCategory(category.id)}
-                      className="rounded-full bg-red-500 absolute -top-1 -right-1 p-0.5 opacity-0 group-hover:opacity-100 z-[1000000]"
+              <div className="border-b px-4 py-2 bg-zinc-50/50">
+                <TabsList className="w-full justify-start h-auto gap-2 bg-transparent p-0 flex-wrap">
+                  {categories.map((category) => (
+                    <TabsTrigger
+                      className="data-[state=active]:bg-white data-[state=active]:text-primary data-[state=active]:shadow-sm border border-transparent data-[state=active]:border-border rounded-lg px-4 py-2 h-9 text-sm relative group transition-all hover:bg-zinc-100/80"
+                      key={category.id}
+                      value={category.name.toLowerCase()}
                     >
-                      <X className="text-white" size={10} />
-                    </div>
-                  </TabsTrigger>
-                ))}
-              </TabsList>
+                      {category.name}
+                      <div
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          toggleDeletionCategory(category.id);
+                        }}
+                        className="rounded-full bg-red-500 absolute -top-1.5 -right-1.5 p-1 opacity-0 group-hover:opacity-100 transition-opacity z-10 shadow-sm cursor-pointer hover:bg-red-600"
+                      >
+                        <X className="text-white w-3 h-3" />
+                      </div>
+                    </TabsTrigger>
+                  ))}
+                </TabsList>
+              </div>
 
               {categories.map((category) => {
                 const filteredProducts = filtrarPorCategoria(
@@ -257,27 +263,32 @@ export default function Cardapio() {
                   <TabsContent
                     key={category.id}
                     value={category.name.toLowerCase()}
+                    className="m-0 p-0"
                   >
                     <Table>
-                      <TableHeader>
-                        <TableRow>
-                          <TableHead>Imagem</TableHead>
-                          <TableHead>ID</TableHead>
+                      <TableHeader className="bg-zinc-50">
+                        <TableRow className="hover:bg-transparent">
+                          <TableHead className="w-[80px]">Imagem</TableHead>
+                          <TableHead className="w-[80px]">ID</TableHead>
                           <TableHead>Nome</TableHead>
                           <TableHead>Valor</TableHead>
+                          <TableHead>Valor Mínimo</TableHead>
                           <TableHead>Desconto</TableHead>
-                          <TableHead>Editar</TableHead>
-                          <TableHead>Excluir</TableHead>
+                          <TableHead className="w-[60px]">Editar</TableHead>
+                          <TableHead className="w-[60px]">Excluir</TableHead>
                         </TableRow>
                       </TableHeader>
                       {filteredProducts.length === 0 ? (
                         <tbody>
                           <tr>
                             <td
-                              colSpan={5}
-                              className="p-4 text-center text-gray-500"
+                              colSpan={8}
+                              className="p-12 text-center text-muted-foreground h-[300px]"
                             >
-                              Nenhum produto encontrado nesta categoria.
+                              <div className="flex flex-col items-center gap-2">
+                                <span className="text-lg font-medium">Nenhum produto encontrado</span>
+                                <span>Adicione produtos a esta categoria para vê-los aqui.</span>
+                              </div>
                             </td>
                           </tr>
                         </tbody>

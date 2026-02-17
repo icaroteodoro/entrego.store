@@ -1,8 +1,7 @@
 import axios from "axios";
 import { parseCookies, setCookie, destroyCookie } from "nookies";
 
-import jwt from "jsonwebtoken";
-
+import { jwtDecode } from "jwt-decode";
 const BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080";
 const api = axios.create({
   baseURL: BASE_URL,
@@ -42,7 +41,7 @@ export function isTokenExpired(token: string): boolean {
   if (!token) return true; // Se não houver token, consideramos como expirado
 
   try {
-    const decoded: any = jwt.decode(token);
+    const decoded: any = jwtDecode(token);
     if (!decoded || !decoded.exp) return true; // Se não conseguir decodificar ou não tiver exp, consideramos expirado
 
     const currentTime = Math.floor(Date.now() / 1000); // Tempo atual em segundos
@@ -65,7 +64,7 @@ api.interceptors.request.use(
         logout()
       } else {
         const response = await axios.post(
-          `${BASE_URL}/auth/store/refresh-token`,
+          `${BASE_URL}/auth/refresh-token`,
           { refreshToken }
         );
 

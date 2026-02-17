@@ -45,6 +45,7 @@ export default function EditProductModal({
 }: EditProductModalProps) {
     const [name, setName] = useState("");
     const [valor, setValor] = useState("");
+    const [minPrice, setMinPrice] = useState("");
     const [productCategory, setProductCategory] = useState<iProductCategory>();
     const [desconto, setDesconto] = useState("");
     const [optionGroups, setOptionGroups] = useState<iProductOptionGroup[]>([]);
@@ -70,6 +71,7 @@ export default function EditProductModal({
             if (product) {
                 setName(product.name);
                 setValor(product.price.toLocaleString("pt-BR", { minimumFractionDigits: 2 }));
+                setMinPrice(product.minPrice ? product.minPrice.toLocaleString("pt-BR", { minimumFractionDigits: 2 }) : "");
                 setDesconto(product.discount ? `${product.discount}%` : "");
                 setProductCategory(product.productCategory);
                 setOptionGroups(product.optionGroups || []);
@@ -97,6 +99,12 @@ export default function EditProductModal({
         const inputValor = e.target.value;
         const numerico = inputValor.replace(/\D/g, "");
         setValor(numerico ? formatarMoeda(numerico) : "");
+    };
+
+    const handleMinPriceChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const inputValor = e.target.value;
+        const numerico = inputValor.replace(/\D/g, "");
+        setMinPrice(numerico ? formatarMoeda(numerico) : "");
     };
 
     const handleDescontoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -129,6 +137,7 @@ export default function EditProductModal({
                 ...product,
                 name,
                 price: valorNumerico,
+                minPrice: minPrice ? parseFloat(minPrice.replace(/\D/g, "")) / 100 : undefined,
                 discount: isNaN(descontoNumerico) ? 0 : descontoNumerico,
                 productCategory: productCategory,
                 optionGroups: optionGroups,
@@ -202,6 +211,18 @@ export default function EditProductModal({
                                     disabled={isLoading}
                                 />
                             </div>
+                        </div>
+
+                        <div className="grid gap-2">
+                            <Label htmlFor="minPrice">Preço Mínimo</Label>
+                            <Input
+                                id="minPrice"
+                                value={minPrice}
+                                onChange={handleMinPriceChange}
+                                placeholder="R$ 0,00"
+                                disabled={isLoading}
+                            />
+                            <p className="text-[10px] text-gray-400">Opcional. Se preenchido, o valor final do pedido nunca será menor que o Preço Mínimo.</p>
                         </div>
 
                         <div className="grid gap-2">

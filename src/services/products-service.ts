@@ -28,6 +28,7 @@ export interface iProduct {
   discount: number;
   productCategory: iProductCategory;
   urlImage: string;
+  minPrice?: number;
   optionGroups?: iProductOptionGroup[];
 }
 
@@ -76,6 +77,7 @@ export async function createProduct(product: iProduct, file: File) {
       price: product.price,
       productCategoryId: product.productCategory.id,
       discount: product.discount,
+      minPrice: product.minPrice,
       storeId,
       optionGroups: product.optionGroups,
     };
@@ -100,9 +102,9 @@ export async function updateProduct(product: iProduct) {
     name: product.name,
     price: product.price,
     discount: product.discount,
+    minPrice: product.minPrice,
     productCategoryId: product.productCategory.id,
     optionGroups: product.optionGroups,
-    storeId // Ensure store ownership context if needed by backend, though backend usually checks via token/id
   });
 
   if (!productUpdated) {

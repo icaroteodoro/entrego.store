@@ -58,6 +58,9 @@ export default function TableBodyProducts({
               {formatToBRL(product.price)}
             </TableCell>
             <TableCell>
+              {product.minPrice ? formatToBRL(product.minPrice) : '-'}
+            </TableCell>
+            <TableCell>
               {product.discount ? `${product.discount}%` : '-'}
             </TableCell>
             <TableCell className="hover:cursor-pointer">

@@ -136,12 +136,12 @@ export function HeaderSidebar() {
             <DropdownMenuTrigger asChild>
               <SidebarMenuButton
                 size="lg"
-                className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground focus-visible:shadow-none"
+                className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground focus-visible:shadow-none h-auto py-2"
               >
                 <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-white text-sidebar-primary-foreground">
                   {
                     store.urlProfileImage ? (
-                      <Image alt="Logotipo" src={store.urlProfileImage} width={400} height={400} className="w-full rounded-lg" />
+                      <Image alt="Logotipo" src={store.urlProfileImage} width={400} height={400} className="w-full h-full object-cover rounded-lg" />
                     ) : (
                       <UserIcon color="#333" className="h-8 w-8" />
                     )
@@ -149,15 +149,16 @@ export function HeaderSidebar() {
                 </div>
                 <div className="grid flex-1 text-left text-sm leading-tight">
                   <span className="truncate font-semibold">{store.name}</span>
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-2 mt-0.5">
                     {storeStatus && (
                       <>
-                        <span className="truncate text-xs">
+                        <div className="relative flex h-2 w-2">
+                          <span className={`${storeStatus === 'OPEN' ? 'animate-ping absolute inline-flex h-full w-full rounded-full opacity-75 ' + statusMap[storeStatus].color : 'hidden'}`}></span>
+                          <span className={`relative inline-flex rounded-full h-2 w-2 ${statusMap[storeStatus].color}`}></span>
+                        </div>
+                        <span className="truncate text-xs font-medium text-muted-foreground">
                           {statusMap[storeStatus].name}
                         </span>
-                        <div
-                          className={`size-2 rounded-full ${statusMap[storeStatus].color}`}
-                        ></div>
                       </>
                     )}
                   </div>
